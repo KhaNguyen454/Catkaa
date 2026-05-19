@@ -138,6 +138,7 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
                     Id = b.Id,
                     BookingCode = b.BookingCode,
                     GuestName = b.GuestName ?? string.Empty,
+                    GuestCccd = b.GuestCccd ?? string.Empty,
                     HotelId = b.HotelId,
                     RoomId = b.RoomId,
                     CheckInDate = b.CheckInDate,
@@ -196,6 +197,15 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
             {
                 return ServiceResult<object>.Fail("Unauthorized Access");
             }
+
+            // Xóa các record liên quan trước để tránh foreign key constraint
+            var checkInRecords = await _context.CheckInRecords.Where(c => c.BookingId == id).ToListAsync();
+            if (checkInRecords.Any())
+                _context.CheckInRecords.RemoveRange(checkInRecords);
+
+            var payments = await _context.Payments.Where(p => p.BookingId == id).ToListAsync();
+            if (payments.Any())
+                _context.Payments.RemoveRange(payments);
 
             _context.Bookings.Remove(booking);
             await _context.SaveChangesAsync();

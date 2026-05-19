@@ -15,7 +15,7 @@ type JwtPayload = {
   [key: string]: unknown;
 };
 
-const API_BASE_URL =
+export const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ?? "http://localhost:5096";
 const TOKEN_KEY = "catkaa_auth_token";
 
@@ -73,6 +73,13 @@ function getJwtPayload(): JwtPayload | null {
   } catch {
     return null;
   }
+}
+
+export function getAuthUsername(): string | null {
+  const payload = getJwtPayload();
+  // .NET JwtSecurityTokenHandler maps ClaimTypes.Name → "unique_name"
+  const name = payload?.unique_name ?? payload?.name ?? payload?.sub;
+  return typeof name === "string" ? name : null;
 }
 
 export function getAuthRole() {

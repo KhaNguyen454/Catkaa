@@ -25,6 +25,7 @@ import {
   Mail,
   ShieldCheck,
   ImageIcon,
+  CalendarDays,
 } from "lucide-react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import {
@@ -53,6 +54,7 @@ import {
   type RoomRecord,
   updateRoom,
 } from "../services/roomService";
+import BookingService, { type BookingResponse } from "../services/bookingService";
 import { useMessage } from "../components/MessageContext";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -137,7 +139,7 @@ const stats = [
   },
 ];
 
-type DashboardView = "overview" | "legal" | "hotels" | "rooms" | "users";
+type DashboardView = "overview" | "legal" | "hotels" | "rooms" | "users" | "bookings";
 
 const emptyHotelForm = {
   name: "",
@@ -204,6 +206,14 @@ const OwnerDashboard: React.FC = () => {
   const [roomHotelId, setRoomHotelId] = useState("");
   const [roomForm, setRoomForm] = useState(emptyRoomForm);
   const [roomModalOpen, setRoomModalOpen] = useState(false);
+
+  // Booking state
+  const [bookings, setBookings] = useState<BookingResponse[]>([]);
+  const [bookingsLoading, setBookingsLoading] = useState(false);
+  const [bookingsError, setBookingsError] = useState("");
+  const [bookingFilterHotelId, setBookingFilterHotelId] = useState<string>("");
+  const [viewBooking, setViewBooking] = useState<BookingResponse | null>(null);
+  const [confirmDeleteBookingId, setConfirmDeleteBookingId] = useState<number | null>(null);
 
   // Search & pagination
   const PAGE_SIZE = 8;
@@ -272,10 +282,15 @@ const OwnerDashboard: React.FC = () => {
   }, [view]);
 
   useEffect(() => {
-    if (view === "hotels" || view === "rooms" || view === "users")
+    if (view === "hotels" || view === "rooms" || view === "users" || view === "bookings")
       void loadHotels();
     if (view === "hotels" || view === "rooms") void loadRooms();
     if (view === "users") void loadUsers();
+    if (view === "bookings") {
+      void loadBookings();
+      void loadRooms();
+      setBookingFilterHotelId("");
+    }
     setSearch("");
     setPage(1);
   }, [view]);
@@ -602,6 +617,39 @@ const OwnerDashboard: React.FC = () => {
     }
   };
 
+  // ── Booking handlers ──
+  const loadBookings = async (filterHotelId?: number) => {
+    setBookingsLoading(true);
+    setBookingsError("");
+    try {
+      const data = await BookingService.getAllBookings(filterHotelId);
+      setBookings(data);
+    } catch (err) {
+      setBookingsError(err instanceof Error ? err.message : "Không tải được danh sách booking");
+    } finally {
+      setBookingsLoading(false);
+    }
+  };
+
+  const handleDeleteBooking = (bookingId: number) => {
+    setViewBooking(null);
+    setConfirmDeleteBookingId(bookingId);
+  };
+
+  const executeDeleteBooking = async (bookingId: number) => {
+    setConfirmDeleteBookingId(null);
+    setViewBooking(null);
+    setBookingsError("");
+    try {
+      await BookingService.deleteBooking(bookingId);
+      notify("bookingDeletedSuccess", "success");
+      await loadBookings(bookingFilterHotelId ? Number(bookingFilterHotelId) : undefined);
+    } catch (err) {
+      notify("bookingDeleteError", "error");
+      setBookingsError(err instanceof Error ? err.message : "Không xóa được đặt phòng");
+    }
+  };
+
   const getHotelNameById = (hotelId: number) => {
     if (!hotelId || hotelId === 0) return "Chưa gắn khách sạn";
     const matched = hotels.find((h) => h.id === hotelId);
@@ -615,7 +663,28 @@ const OwnerDashboard: React.FC = () => {
     return role || "Chưa phân quyền";
   };
 
+  const getRoomNumberById = (roomId: number) => {
+    const room = rooms.find((r) => r.id === roomId);
+    return room ? `Phòng ${room.roomNumber}` : `#${roomId}`;
+  };
+
+  const getBookingStatusLabel = (status: string) => {
+    const map: Record<string, { label: string; cls: string }> = {
+      Confirmed: { label: "Đã xác nhận", cls: "db-badge-host" },
+      CheckedIn: { label: "Đang ở", cls: "db-badge-active" },
+      Completed: { label: "Đã trả phòng", cls: "db-badge-done" },
+      Cancelled: { label: "Đã hủy", cls: "db-badge-cancel" },
+    };
+    return map[status] ?? { label: status, cls: "db-badge-done" };
+  };
+
   const q = search.toLowerCase();
+  const filteredBookings = bookings.filter(
+    (b) =>
+      b.guestName.toLowerCase().includes(q) ||
+      b.guestCccd.toLowerCase().includes(q) ||
+      getHotelNameById(b.hotelId).toLowerCase().includes(q),
+  );
   const filteredHotels = hotels.filter(
     (h) =>
       h.name.toLowerCase().includes(q) || h.address.toLowerCase().includes(q),
@@ -709,6 +778,7 @@ const OwnerDashboard: React.FC = () => {
         .db-badge-done{background:#f1f5f9;color:#64748b;}
         .db-badge-admin{background:#ede9fe;color:#6d28d9;}
         .db-badge-host{background:#eff6ff;color:#1d4ed8;}
+        .db-badge-cancel{background:#fff1f2;color:#e11d48;}
         .db-count{display:inline-flex;align-items:center;padding:.28rem .7rem;border-radius:999px;background:#eff6ff;color:#1d4ed8;font-size:.72rem;font-weight:700;border:1px solid #bfdbfe;}
 
         /* Icon buttons */
@@ -870,6 +940,12 @@ const OwnerDashboard: React.FC = () => {
                 <Users size={16} /> Khách hàng
               </button>
               <button
+                onClick={() => setView("bookings")}
+                className={`db-nav-btn ${view === "bookings" ? "active" : ""}`}
+              >
+                <CalendarDays size={16} /> Đặt phòng
+              </button>
+              <button
                 onClick={() => setView("hotels")}
                 className={`db-nav-btn ${view === "hotels" ? "active" : ""}`}
               >
@@ -884,12 +960,20 @@ const OwnerDashboard: React.FC = () => {
             </>
           ) : null}
           {isAdmin ? (
-            <button
-              onClick={() => setView("users")}
-              className={`db-nav-btn ${view === "users" ? "active" : ""}`}
-            >
-              <Users size={16} /> Tài khoản
-            </button>
+            <>
+              <button
+                onClick={() => setView("bookings")}
+                className={`db-nav-btn ${view === "bookings" ? "active" : ""}`}
+              >
+                <CalendarDays size={16} /> Đặt phòng
+              </button>
+              <button
+                onClick={() => setView("users")}
+                className={`db-nav-btn ${view === "users" ? "active" : ""}`}
+              >
+                <Users size={16} /> Tài khoản
+              </button>
+            </>
           ) : null}
         </nav>
 
@@ -958,7 +1042,9 @@ const OwnerDashboard: React.FC = () => {
                     ? "Quản lý khách sạn"
                     : view === "rooms"
                       ? "Quản lý phòng"
-                      : "Quản lý tài khoản"}
+                      : view === "bookings"
+                        ? "Quản lý đặt phòng"
+                        : "Quản lý tài khoản"}
               </h5>
               <div
                 style={{
@@ -979,7 +1065,9 @@ const OwnerDashboard: React.FC = () => {
                       ? "Khách sạn"
                       : view === "rooms"
                         ? "Phòng"
-                        : "Tài khoản"}
+                        : view === "bookings"
+                          ? "Đặt phòng"
+                          : "Tài khoản"}
                 </span>
               </div>
             </div>
@@ -1914,6 +2002,211 @@ const OwnerDashboard: React.FC = () => {
                   >
                     <ChevronRight size={14} />
                   </button>
+                </div>
+              )}
+            </div>
+          ) : view === "bookings" ? (
+            /* ══ BOOKINGS ══ */
+            <div className="db-card">
+              <div className="db-card-hd" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: ".75rem" }}>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: ".9rem", color: "#0f172a" }}>Danh sách đặt phòng</div>
+                  <div style={{ fontSize: ".7rem", color: "#94a3b8", marginTop: "2px" }}>
+                    {bookings.length} booking{bookings.length !== 1 ? "s" : ""} tổng cộng
+                  </div>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: ".65rem", flexWrap: "wrap" }}>
+                  {/* Filter by hotel */}
+                  <select
+                    className="db-inp db-inp select"
+                    style={{ height: 36, width: 200, fontSize: ".82rem", padding: "0 2rem 0 .75rem" }}
+                    value={bookingFilterHotelId}
+                    onChange={(e) => {
+                      setBookingFilterHotelId(e.target.value);
+                      setPage(1);
+                      void loadBookings(e.target.value ? Number(e.target.value) : undefined);
+                    }}
+                  >
+                    <option value="">Tất cả khách sạn</option>
+                    {hotels.map((h) => (
+                      <option key={h.id} value={h.id}>{h.name}</option>
+                    ))}
+                  </select>
+                  <div className="db-search">
+                    <Search className="db-search-ic" size={14} />
+                    <input
+                      placeholder="Tên khách, CCCD..."
+                      value={search}
+                      onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {bookingsError && <div className="db-err" style={{ margin: "1rem 1.4rem 0" }}>{bookingsError}</div>}
+
+              <div className="table-responsive">
+                <table className="table db-tbl mb-0">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Khách</th>
+                      <th>Mã booking</th>
+                      <th>Khách sạn</th>
+                      <th>Phòng</th>
+                      <th>Check-in</th>
+                      <th>Check-out</th>
+                      <th>Trạng thái</th>
+                      <th style={{ width: 70 }}></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bookingsLoading ? (
+                      <tr><td colSpan={9} className="db-empty">Đang tải dữ liệu...</td></tr>
+                    ) : filteredBookings.length === 0 ? (
+                      <tr>
+                        <td colSpan={9} className="db-empty">
+                          <CalendarDays size={30} style={{ opacity: 0.25, display: "block", margin: "0 auto .5rem" }} />
+                          <div style={{ fontWeight: 600, fontSize: ".88rem", marginBottom: 4 }}>
+                            {search ? "Không tìm thấy kết quả" : "Chưa có đặt phòng nào"}
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      paginate(filteredBookings).map((b, idx) => {
+                        const status = getBookingStatusLabel(b.status);
+                        return (
+                          <tr key={b.id}>
+                            <td style={{ color: "#94a3b8", fontSize: ".78rem", width: 40 }}>
+                              {(page - 1) * PAGE_SIZE + idx + 1}
+                            </td>
+                            <td>
+                              <div style={{ display: "flex", alignItems: "center", gap: ".6rem" }}>
+                                <div className="db-av" style={{ background: "#eff6ff", color: "#1686cb", fontSize: ".8rem" }}>
+                                  {b.guestName.charAt(0).toUpperCase()}
+                                </div>
+                                <span style={{ fontWeight: 700, color: "#0f172a", fontSize: ".84rem" }}>{b.guestName}</span>
+                              </div>
+                            </td>
+                            <td style={{ color: "#64748b", fontSize: ".81rem", fontFamily: "monospace" }}>{b.bookingCode || `#${b.id}`}</td>
+                            <td style={{ color: "#64748b", fontSize: ".81rem" }}>{getHotelNameById(b.hotelId)}</td>
+                            <td style={{ fontWeight: 600, color: "#1686cb", fontSize: ".82rem" }}>{getRoomNumberById(b.roomId)}</td>
+                            <td style={{ color: "#64748b", fontSize: ".81rem" }}>
+                              {new Date(b.checkInDate).toLocaleDateString("vi-VN")}
+                            </td>
+                            <td style={{ color: "#64748b", fontSize: ".81rem" }}>
+                              {new Date(b.checkOutDate).toLocaleDateString("vi-VN")}
+                            </td>
+                            <td><span className={`db-badge ${status.cls}`}>{status.label}</span></td>
+                            <td>
+                              <div style={{ display: "flex", justifyContent: "flex-end", gap: 6 }}>
+                                <button className="db-ibtn db-ibtn-view" type="button" onClick={() => setViewBooking(b)} title="Xem chi tiết">
+                                  <Eye size={13} />
+                                </button>
+                                <button className="db-ibtn db-ibtn-del" type="button" onClick={() => handleDeleteBooking(b.id)} title="Xóa">
+                                  <Trash2 size={13} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {totalPages(filteredBookings) > 1 && (
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 6, padding: "1rem" }}>
+                  <button className="db-btn-ghost" style={{ height: 32, padding: "0 .6rem" }} disabled={page === 1} onClick={() => setPage((p) => p - 1)}>
+                    <ChevronLeft size={14} />
+                  </button>
+                  {Array.from({ length: totalPages(filteredBookings) }, (_, i) => i + 1).map((p) => (
+                    <button key={p} onClick={() => setPage(p)} style={{ height: 32, minWidth: 32, borderRadius: 8, border: "1px solid", borderColor: p === page ? "var(--brand)" : "#e2e8f0", background: p === page ? "var(--brand)" : "#f8fafc", color: p === page ? "#fff" : "#64748b", fontWeight: 600, fontSize: ".8rem", cursor: "pointer" }}>
+                      {p}
+                    </button>
+                  ))}
+                  <button className="db-btn-ghost" style={{ height: 32, padding: "0 .6rem" }} disabled={page === totalPages(filteredBookings)} onClick={() => setPage((p) => p + 1)}>
+                    <ChevronRight size={14} />
+                  </button>
+                </div>
+              )}
+
+              {/* Confirm delete modal */}
+              {confirmDeleteBookingId !== null && (
+                <div className="db-modal-backdrop" onClick={() => setConfirmDeleteBookingId(null)}>
+                  <div className="db-modal" style={{ maxWidth: 400 }} onClick={(e) => e.stopPropagation()}>
+                    <div className="db-modal-hd" style={{ background: "linear-gradient(140deg,#7f1d1d 0%,#991b1b 100%)" }}>
+                      <div>
+                        <div style={{ color: "#fff", fontWeight: 700, fontSize: "1rem" }}>Xác nhận xóa</div>
+                        <div style={{ color: "rgba(255,255,255,.5)", fontSize: ".72rem", marginTop: 2 }}>Hành động này không thể hoàn tác</div>
+                      </div>
+                      <button onClick={() => setConfirmDeleteBookingId(null)} style={{ background: "transparent", border: "none", color: "rgba(255,255,255,.5)", cursor: "pointer", padding: 4 }}>
+                        <X size={18} />
+                      </button>
+                    </div>
+                    <div className="db-modal-body" style={{ textAlign: "center", padding: "2rem 1.5rem" }}>
+                      <div style={{ width: 56, height: 56, borderRadius: "50%", background: "#fff1f2", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem" }}>
+                        <Trash2 size={24} color="#e11d48" />
+                      </div>
+                      <p style={{ fontWeight: 700, color: "#0f172a", marginBottom: ".5rem" }}>Xóa đặt phòng này?</p>
+                      <p style={{ color: "#64748b", fontSize: ".85rem", margin: 0 }}>
+                        Tất cả dữ liệu liên quan (check-in, thanh toán) sẽ bị xóa theo.
+                      </p>
+                    </div>
+                    <div className="db-modal-foot" style={{ justifyContent: "center", gap: "1rem" }}>
+                      <button className="db-btn-ghost" style={{ minWidth: 110 }} onClick={() => setConfirmDeleteBookingId(null)}>
+                        Hủy bỏ
+                      </button>
+                      <button
+                        className="db-btn-primary"
+                        style={{ minWidth: 110, background: "linear-gradient(135deg,#dc2626,#b91c1c)", boxShadow: "0 4px 12px rgba(220,38,38,.28)" }}
+                        onClick={() => executeDeleteBooking(confirmDeleteBookingId)}
+                      >
+                        Xóa booking
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Detail modal */}
+              {viewBooking && (
+                <div className="db-modal-backdrop" onClick={() => setViewBooking(null)}>
+                  <div className="db-modal" style={{ maxWidth: 460 }} onClick={(e) => e.stopPropagation()}>
+                    <div className="db-modal-hd">
+                      <div>
+                        <div style={{ color: "#fff", fontWeight: 700, fontSize: "1rem" }}>Chi tiết đặt phòng</div>
+                        <div style={{ color: "rgba(255,255,255,.45)", fontSize: ".72rem", marginTop: 2 }}>Booking #{viewBooking.id}</div>
+                      </div>
+                      <button onClick={() => setViewBooking(null)} style={{ background: "transparent", border: "none", color: "rgba(255,255,255,.5)", cursor: "pointer", padding: 4 }}>
+                        <X size={18} />
+                      </button>
+                    </div>
+                    <div className="db-modal-body">
+                      {([
+                        ["Mã booking", viewBooking.bookingCode || `#${viewBooking.id}`],
+                        ["Tên khách", viewBooking.guestName],
+                        ["CCCD / CMND", viewBooking.guestCccd || "—"],
+                        ["Khách sạn", getHotelNameById(viewBooking.hotelId)],
+                        ["Phòng", getRoomNumberById(viewBooking.roomId)],
+                        ["Check-in", new Date(viewBooking.checkInDate).toLocaleDateString("vi-VN")],
+                        ["Check-out", new Date(viewBooking.checkOutDate).toLocaleDateString("vi-VN")],
+                        ["Trạng thái", getBookingStatusLabel(viewBooking.status).label],
+                      ] as [string, string][]).map(([label, val]) => (
+                        <div key={label} className="db-info-row">
+                          <span style={{ fontSize: ".67rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: ".08em", color: "#94a3b8" }}>{label}</span>
+                          <span className="db-info-val">{val}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="db-modal-foot">
+                      <button className="db-btn-ghost" onClick={() => setViewBooking(null)}>Đóng</button>
+                      <button className="db-btn-primary" style={{ background: "linear-gradient(135deg,#dc2626,#b91c1c)", boxShadow: "0 4px 12px rgba(220,38,38,.28)" }} onClick={() => handleDeleteBooking(viewBooking.id)}>
+                        Xóa booking
+                      </button>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

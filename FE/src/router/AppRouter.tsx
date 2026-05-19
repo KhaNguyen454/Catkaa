@@ -7,12 +7,16 @@ import OwnerDashboard from "../pages/OwnerDashboard";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 import Services from "../pages/Services";
-import { getAuthToken } from "../services/authService";
+import TestBooking from "../pages/TestBooking";
+import { getAuthRole, getAuthToken } from "../services/authService";
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  return getAuthToken() ? <>{children}</> : <Navigate to="/login" replace />;
+  if (!getAuthToken()) return <Navigate to="/login" replace />;
+  const role = getAuthRole();
+  if (role !== "Admin" && role !== "Host") return <Navigate to="/" replace />;
+  return <>{children}</>;
 };
 
 const About = () => (
@@ -43,6 +47,7 @@ const AppRouter: React.FC = () => {
         <Route path="check-in" element={<GuestFlow />} />
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
+        <Route path="test-booking" element={<TestBooking />} />
       </Route>
 
       {/* Chỉ Dashboard Admin là chạy độc lập vì có Sidebar riêng */}

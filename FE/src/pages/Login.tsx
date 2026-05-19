@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, Mail, Lock } from "lucide-react";
-import { getAuthToken, login, setAuthToken } from "../services/authService";
+import { getAuthRole, getAuthToken, login, setAuthToken } from "../services/authService";
 import { useMessage } from "../components/MessageContext";
 
 const Login: React.FC = () => {
@@ -14,7 +14,8 @@ const Login: React.FC = () => {
 
   useEffect(() => {
     if (getAuthToken()) {
-      navigate("/dashboard", { replace: true });
+      const role = getAuthRole();
+      navigate(role === "Admin" || role === "Host" ? "/dashboard" : "/", { replace: true });
     }
   }, [navigate]);
 
@@ -27,7 +28,8 @@ const Login: React.FC = () => {
       const response = await login({ username, password });
       setAuthToken(response.token);
       notify("loginSuccess", "success");
-      navigate("/dashboard", { replace: true });
+      const role = getAuthRole();
+      navigate(role === "Admin" || role === "Host" ? "/dashboard" : "/", { replace: true });
     } catch (submitError) {
       const raw = submitError instanceof Error ? submitError.message : "";
       const errorMsg =

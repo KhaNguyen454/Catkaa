@@ -30,8 +30,10 @@ export const messages = {
   // Booking Management
   bookingCreatedSuccess: "Tạo đặt phòng thành công",
   bookingUpdatedSuccess: "Cập nhật đặt phòng thành công",
+  bookingDeletedSuccess: "Xóa đặt phòng thành công",
   bookingCancelledSuccess: "Hủy đặt phòng thành công",
   bookingLoadError: "Lỗi khi tải thông tin đặt phòng",
+  bookingDeleteError: "Lỗi khi xóa đặt phòng",
 
   // General
   loadingError: "Lỗi khi tải dữ liệu",

@@ -126,11 +126,12 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
             if (hotel == null) return ServiceResult<object>.Fail("Hotel not found.");
 
             // Bước 2: Smart Lookup - Tìm Booking bằng CCCD + HotelId + CheckInDate hôm nay
-            var today = DateTime.UtcNow.Date;
+            var today = DateTime.Now.Date; // Dùng local time để tránh lệch múi giờ UTC+7
             var booking = await _context.Bookings.FirstOrDefaultAsync(b =>
                 b.HotelId == hotelId &&
                 b.GuestCccd == request.IdNumber &&
-                b.CheckInDate.Date == today &&
+                b.CheckInDate.Date <= today &&
+                b.CheckOutDate.Date >= today &&
                 b.Status != "Cancelled" &&
                 b.Status != "CheckedIn");
 
