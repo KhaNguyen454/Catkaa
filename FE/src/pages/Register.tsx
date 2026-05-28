@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, Mail, Lock, User } from "lucide-react";
+import { ArrowRight, Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 import { getAuthToken } from "../services/authService";
 import { useMessage } from "../components/MessageContext";
 
@@ -16,6 +16,8 @@ const Register: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     if (getAuthToken()) {
@@ -256,7 +258,7 @@ const Register: React.FC = () => {
                   <Lock size={16} />
                 </span>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   className="form-control"
                   placeholder="••••••••"
                   name="password"
@@ -266,11 +268,19 @@ const Register: React.FC = () => {
                     height: "48px",
                     borderRadius: "10px",
                     paddingLeft: "45px",
+                    paddingRight: "45px",
                     border: "2px solid #f1f5f9",
                     backgroundColor: "#f8fafc",
                     fontSize: "14px",
                   }}
                 />
+                <span
+                  className="position-absolute top-50 translate-middle-y text-muted"
+                  style={{ right: "15px", cursor: "pointer" }}
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </span>
               </div>
             </div>
 
@@ -292,7 +302,7 @@ const Register: React.FC = () => {
                   <Lock size={16} />
                 </span>
                 <input
-                  type="password"
+                  type={showConfirmPassword ? "text" : "password"}
                   className="form-control"
                   placeholder="••••••••"
                   name="confirmPassword"
@@ -302,11 +312,19 @@ const Register: React.FC = () => {
                     height: "48px",
                     borderRadius: "10px",
                     paddingLeft: "45px",
+                    paddingRight: "45px",
                     border: "2px solid #f1f5f9",
                     backgroundColor: "#f8fafc",
                     fontSize: "14px",
                   }}
                 />
+                <span
+                  className="position-absolute top-50 translate-middle-y text-muted"
+                  style={{ right: "15px", cursor: "pointer" }}
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </span>
               </div>
             </div>
 
@@ -377,6 +395,10 @@ const Register: React.FC = () => {
       </div>
 
       <style>{`
+        .form-control::placeholder {
+          color: #adb5bd !important;
+          opacity: 0.4 !important;
+        }
         .form-control:focus {
           background-color: #fff !important;
           border-color: #1686cb !important;

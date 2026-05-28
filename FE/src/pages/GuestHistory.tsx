@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { History, CreditCard, User, AlertCircle, Inbox } from "lucide-react";
+import { API_BASE_URL } from "../config/apiConfig";
 import {
-  API_BASE_URL,
   getAuthToken,
   getAuthUsername,
 } from "../services/authService";

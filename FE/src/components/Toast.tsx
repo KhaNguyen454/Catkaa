@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Notification } from "../contexts/NotificationContext";
+import { Notification } from "./NotificationContext";
 
 interface ToastProps {
   notification: Notification;
