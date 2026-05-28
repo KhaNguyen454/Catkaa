@@ -381,6 +381,10 @@ export default function TestBooking() {
       )}
 
       <style>{`
+        .form-control::placeholder {
+          color: #adb5bd !important;
+          opacity: 0.4 !important;
+        }
         .spin { animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .form-select:disabled { background-color: #f5f5f5; color: #aaa; cursor: not-allowed; }
