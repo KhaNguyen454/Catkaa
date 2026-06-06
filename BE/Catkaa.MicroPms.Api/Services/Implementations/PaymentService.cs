@@ -6,6 +6,7 @@ using Catkaa.MicroPms.Api.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,11 +18,13 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
     {
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
+        private readonly VnPaySettings _vnpSettings;
 
-        public PaymentService(ApplicationDbContext context, IConfiguration configuration)
+        public PaymentService(ApplicationDbContext context, IConfiguration configuration, IOptions<VnPaySettings> vnpSettings)
         {
             _context = context;
             _configuration = configuration;
+            _vnpSettings = vnpSettings.Value;
         }
 
         public async Task<ServiceResult<string>> CreatePaymentUrlAsync(int bookingId, int? currentUserId, HttpContext context)
@@ -36,8 +39,8 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
             if (currentUserId != null && booking.UserId != currentUserId && booking.UserId != null)
                 return ServiceResult<string>.Fail("Unauthorized Access");
 
-            // Cho phép Pending (chưa check-in) và CheckedIn (đã check-in, chưa thanh toán)
-            if (booking.Status != "Pending" && booking.Status != "CheckedIn")
+            // Cho phép Pending (chưa check-in), AwaitingPayment (OCR xong), và CheckedIn
+            if (booking.Status == "CheckIn" || booking.Status == "CheckOut" || booking.Status == "Cancelled")
                 return ServiceResult<string>.Fail("Booking không thể thanh toán ở trạng thái hiện tại");
 
             // Kiểm tra đã thanh toán thành công chưa
@@ -55,11 +58,12 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
 
             var timeNow = DateTime.Now;
             var vnpay = new VnPayLibrary();
-            var vnpSettings = _configuration.GetSection("VnPaySettings");
 
-            vnpay.AddRequestData("vnp_Version", vnpSettings["Version"]!);
-            vnpay.AddRequestData("vnp_Command", vnpSettings["Command"]!);
-            vnpay.AddRequestData("vnp_TmnCode", vnpSettings["TmnCode"]!);
+            Console.WriteLine($"\n[VNPAY_DEBUG_CONFIG] TmnCode='{_vnpSettings.TmnCode}', HashSecretLength={_vnpSettings.HashSecret?.Length}\n");
+
+            vnpay.AddRequestData("vnp_Version", _vnpSettings.Version);
+            vnpay.AddRequestData("vnp_Command", _vnpSettings.Command);
+            vnpay.AddRequestData("vnp_TmnCode", _vnpSettings.TmnCode);
             vnpay.AddRequestData("vnp_Amount", (totalAmount * 100).ToString("0"));
             vnpay.AddRequestData("vnp_CreateDate", timeNow.ToString("yyyyMMddHHmmss"));
             vnpay.AddRequestData("vnp_CurrCode", "VND");
@@ -67,10 +71,11 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
             vnpay.AddRequestData("vnp_Locale", "vn");
             vnpay.AddRequestData("vnp_OrderInfo", $"Thanh toan booking {booking.BookingCode}");
             vnpay.AddRequestData("vnp_OrderType", "other");
-            vnpay.AddRequestData("vnp_ReturnUrl", vnpSettings["ReturnUrl"]!);
+            vnpay.AddRequestData("vnp_ReturnUrl", _vnpSettings.ReturnUrl);
             vnpay.AddRequestData("vnp_TxnRef", booking.Id.ToString() + "_" + timeNow.Ticks.ToString());
 
-            var paymentUrl = vnpay.CreateRequestUrl(vnpSettings["BaseUrl"]!, vnpSettings["HashSecret"]!);
+            var paymentUrl = vnpay.CreateRequestUrl(_vnpSettings.BaseUrl, _vnpSettings.HashSecret);
+            Console.WriteLine($"\n[FINAL_URL] {paymentUrl}\n");
             return ServiceResult<string>.Ok("Success", paymentUrl);
         }
 
@@ -88,12 +93,11 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
 
             var timeNow = DateTime.Now;
             var vnpay = new VnPayLibrary();
-            var vnpSettings = _configuration.GetSection("VnPaySettings");
-            var hashSecret = vnpSettings["HashSecret"]!.Trim();
+            var hashSecret = _vnpSettings.HashSecret.Trim();
 
-            vnpay.AddRequestData("vnp_Version",   vnpSettings["Version"]!);
-            vnpay.AddRequestData("vnp_Command",   vnpSettings["Command"]!);
-            vnpay.AddRequestData("vnp_TmnCode",   vnpSettings["TmnCode"]!);
+            vnpay.AddRequestData("vnp_Version",   _vnpSettings.Version);
+            vnpay.AddRequestData("vnp_Command",   _vnpSettings.Command);
+            vnpay.AddRequestData("vnp_TmnCode",   _vnpSettings.TmnCode);
             vnpay.AddRequestData("vnp_Amount",    (totalAmount * 100).ToString("0"));
             vnpay.AddRequestData("vnp_CreateDate", timeNow.ToString("yyyyMMddHHmmss"));
             vnpay.AddRequestData("vnp_CurrCode",  "VND");
@@ -101,14 +105,14 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
             vnpay.AddRequestData("vnp_Locale",    "vn");
             vnpay.AddRequestData("vnp_OrderInfo", $"Thanh toan booking {booking.BookingCode}");
             vnpay.AddRequestData("vnp_OrderType", "other");
-            vnpay.AddRequestData("vnp_ReturnUrl", vnpSettings["ReturnUrl"]!);
+            vnpay.AddRequestData("vnp_ReturnUrl", _vnpSettings.ReturnUrl);
             vnpay.AddRequestData("vnp_TxnRef",    booking.Id.ToString() + "_" + timeNow.Ticks.ToString());
 
-            var (url, rawSignData) = vnpay.CreateRequestUrlWithDebug(vnpSettings["BaseUrl"]!, hashSecret);
+            var (url, rawSignData) = vnpay.CreateRequestUrlWithDebug(_vnpSettings.BaseUrl, hashSecret);
 
             return ServiceResult<object>.Ok("Debug info", new
             {
-                tmnCode          = vnpSettings["TmnCode"],
+                tmnCode          = _vnpSettings.TmnCode,
                 hashSecretLength = hashSecret.Length,
                 hashSecretFirst4 = hashSecret.Length >= 4 ? hashSecret[..4] : hashSecret,
                 hashSecretLast4  = hashSecret.Length >= 4 ? hashSecret[^4..] : hashSecret,
@@ -132,8 +136,7 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
             var vnp_TransactionNo = vnpay.GetResponseData("vnp_TransactionNo");
             var vnp_AmountStr = vnpay.GetResponseData("vnp_Amount");
 
-            var vnpSettings = _configuration.GetSection("VnPaySettings");
-            bool checkSignature = vnpay.ValidateSignature(vnp_SecureHash, vnpSettings["HashSecret"]!);
+            bool checkSignature = vnpay.ValidateSignature(vnp_SecureHash, _vnpSettings.HashSecret);
 
             if (!checkSignature)
                 return ServiceResult<object>.Fail("Invalid signature");
@@ -302,6 +305,40 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
                 return ServiceResult<PaymentResponseDto>.Fail("Không tìm thấy thông tin thanh toán cho booking này");
 
             return ServiceResult<PaymentResponseDto>.Ok("Success", payment);
+        }
+
+        public async Task<ServiceResult<object>> MockPaymentAsync(int bookingId)
+        {
+            var booking = await _context.Bookings
+                .Include(b => b.Room)
+                .FirstOrDefaultAsync(b => b.Id == bookingId);
+
+            if (booking == null) return ServiceResult<object>.Fail("Booking not found");
+
+            var alreadyPaid = await _context.Payments
+                .AnyAsync(p => p.BookingId == bookingId && p.Status == "Success");
+            
+            if (alreadyPaid)
+                return ServiceResult<object>.Ok("Order already confirmed");
+
+            var days = (booking.CheckOutDate.Date - booking.CheckInDate.Date).Days;
+            if (days <= 0) days = 1;
+
+            decimal totalAmount = days * (booking.Room?.Price ?? 0);
+
+            booking.Status = "Confirmed";
+            _context.Payments.Add(new Payment
+            {
+                BookingId = booking.Id,
+                TransactionId = "MOCK_" + DateTime.Now.Ticks.ToString(),
+                Amount = totalAmount,
+                Status = "Success",
+                PaymentDate = DateTime.Now,
+                PaymentMethod = "Mock"
+            });
+
+            await _context.SaveChangesAsync();
+            return ServiceResult<object>.Ok("Mock Payment Successful");
         }
     }
 }

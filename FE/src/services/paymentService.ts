@@ -46,6 +46,20 @@ class PaymentService {
 
     return await response.json();
   }
+
+  static async mockPayment(bookingId: number): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/api/payments/${bookingId}/mock-pay`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Thanh toán giả lập thất bại');
+    }
+  }
 }
 
 export default PaymentService;

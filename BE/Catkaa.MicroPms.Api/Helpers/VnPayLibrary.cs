@@ -50,12 +50,13 @@ namespace Catkaa.MicroPms.Api.Helpers
             {
                 if (!string.IsNullOrEmpty(kv.Value))
                 {
-                    data.Append(WebUtility.UrlEncode(kv.Key) + "=" + WebUtility.UrlEncode(kv.Value) + "&");
+                    data.Append(Uri.EscapeDataString(kv.Key) + "=" + Uri.EscapeDataString(kv.Value) + "&");
                 }
             }
 
             // VNPay computes hash from URL-encoded key=value pairs (same string used in query)
             var hashData = data.Length > 0 ? data.ToString().TrimEnd('&') : string.Empty;
+            Console.WriteLine($"\n[VNPAY_DEBUG_SIGNDATA] {hashData}\n");
             var vnp_SecureHash = HmacSHA512(vnp_HashSecret.Trim(), hashData);
             var url = baseUrl + "?" + hashData + "&vnp_SecureHash=" + vnp_SecureHash;
 
@@ -79,7 +80,7 @@ namespace Catkaa.MicroPms.Api.Helpers
             {
                 if (!string.IsNullOrEmpty(kv.Value))
                 {
-                    data.Append(WebUtility.UrlEncode(kv.Key) + "=" + WebUtility.UrlEncode(kv.Value) + "&");
+                    data.Append(Uri.EscapeDataString(kv.Key) + "=" + Uri.EscapeDataString(kv.Value) + "&");
                 }
             }
 

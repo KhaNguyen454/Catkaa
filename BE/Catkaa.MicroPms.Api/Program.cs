@@ -12,10 +12,14 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddMemoryCache();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IEmailService, SmtpEmailService>();
+
+// Configure VNPay Settings using IOptions pattern
+builder.Services.Configure<VnPaySettings>(builder.Configuration.GetSection("VnPaySettings"));
 
 // Configure FPT.AI HttpClient
 var fptAiConfig = builder.Configuration.GetSection("FptAi");

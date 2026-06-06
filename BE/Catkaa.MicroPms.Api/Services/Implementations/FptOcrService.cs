@@ -1,6 +1,7 @@
 using Catkaa.MicroPms.Api.DTOs;
 using Catkaa.MicroPms.Api.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
@@ -17,12 +18,14 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
         private readonly ILogger<FptOcrService> _logger;
+        private readonly IMemoryCache _cache;
 
-        public FptOcrService(HttpClient httpClient, IConfiguration configuration, ILogger<FptOcrService> logger)
+        public FptOcrService(HttpClient httpClient, IConfiguration configuration, ILogger<FptOcrService> logger, IMemoryCache cache)
         {
             _httpClient = httpClient;
             _configuration = configuration;
             _logger = logger;
+            _cache = cache;
             
             // Lấy URL và API Key từ config nếu HttpClient chưa được configure default header (Phòng hờ)
             // Tốt nhất là cấu hình ở Program.cs
@@ -34,6 +37,25 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
 
             try
             {
+                // Generate Cache Key using SHA256 hash of the image
+                string cacheKey;
+                using (var ms = new System.IO.MemoryStream())
+                {
+                    await image.CopyToAsync(ms);
+                    ms.Position = 0;
+                    using (var sha256 = System.Security.Cryptography.SHA256.Create())
+                    {
+                        var hashBytes = sha256.ComputeHash(ms);
+                        cacheKey = "FPT_OCR_" + BitConverter.ToString(hashBytes).Replace("-", "");
+                    }
+                }
+
+                if (_cache.TryGetValue(cacheKey, out OcrCheckInDto? cachedResult) && cachedResult != null)
+                {
+                    _logger.LogInformation($"[FPT_OCR_CACHE] Returning cached OCR result for image hash: {cacheKey}");
+                    return cachedResult;
+                }
+
                 using var content = new MultipartFormDataContent();
                 using var stream = image.OpenReadStream();
                 using var streamContent = new StreamContent(stream);
@@ -75,13 +97,18 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
                     DateTime.TryParseExact(data.Dob, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out dob);
                 }
 
-                return new OcrCheckInDto
+                var resultDto = new OcrCheckInDto
                 {
                     IdNumber = data.Id,
                     FullName = data.Name,
                     DateOfBirth = dob,
                     ImageUrl = "" // Xử lý upload ảnh riêng nếu cần
                 };
+
+                // Cache the result for 30 minutes
+                _cache.Set(cacheKey, resultDto, TimeSpan.FromMinutes(30));
+
+                return resultDto;
             }
             catch (Exception ex)
             {

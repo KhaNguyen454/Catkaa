@@ -9,6 +9,7 @@ import {
 import CheckInService, { OcrCheckInResult, OcrCheckInResponse } from "../services/checkInService";
 import { getHotels, Hotel } from "../services/hotelService";
 import { getRoomById, RoomRecord } from "../services/roomService";
+import PaymentService from "../services/paymentService";
 
 /* ─────────────────────────────────────────────────
    BƯỚC 0 — Chào mừng & chọn khách sạn
@@ -276,6 +277,7 @@ const StepCheckInDone = ({
         )}
         <Link
           to="/"
+          onClick={() => sessionStorage.removeItem("catkaa_checkin_state")}
           className="btn btn-outline-secondary w-100 rounded-pill fw-bold small text-decoration-none"
           style={{ fontSize: "12px" }}
         >
@@ -302,6 +304,7 @@ const StepPayment = ({
   const paymentUrl = data?.paymentUrl;
   const [paid, setPaid] = useState(false);
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
+  const [loadingMock, setLoadingMock] = useState(false);
 
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
@@ -323,6 +326,20 @@ const StepPayment = ({
     if (paymentUrl) {
       window.open(paymentUrl, "_blank");
       setPaid(true);
+    }
+  };
+
+  const handleMockPay = async () => {
+    if (!data?.bookingId) return;
+    setLoadingMock(true);
+    try {
+      await PaymentService.mockPayment(data.bookingId);
+      setPaymentConfirmed(true);
+      setPaid(true);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Thanh toán giả lập thất bại");
+    } finally {
+      setLoadingMock(false);
     }
   };
 
@@ -400,6 +417,7 @@ const StepPayment = ({
         {paymentConfirmed ? (
           <Link
             to="/"
+            onClick={() => sessionStorage.removeItem("catkaa_checkin_state")}
             className="btn w-100 rounded-pill text-white fw-bold py-2 text-decoration-none"
             style={{ background: "#16a34a", fontSize: "13px" }}
           >
@@ -407,14 +425,25 @@ const StepPayment = ({
             Về trang chủ
           </Link>
         ) : !paid ? (
-          <button
-            onClick={handlePay}
-            className="btn w-100 rounded-pill text-white fw-bold py-2 shadow"
-            style={{ background: "linear-gradient(135deg,#16309F,#1686cb)", fontSize: "13px" }}
-          >
-            <ExternalLink size={14} className="me-2" />
-            Thanh toán qua VNPay
-          </button>
+          <>
+            <button
+              onClick={handleMockPay}
+              disabled={loadingMock}
+              className="btn w-100 rounded-pill text-white fw-bold py-2 shadow"
+              style={{ background: "#10b981", fontSize: "13px" }}
+            >
+              {loadingMock ? <Loader2 size={14} className="me-2 spin" /> : <Check size={14} className="me-2" />}
+              Thanh toán (Giả lập)
+            </button>
+            <button
+              onClick={handlePay}
+              className="btn w-100 rounded-pill text-white fw-bold py-2 shadow"
+              style={{ background: "#94a3b8", fontSize: "13px" }}
+            >
+              <ExternalLink size={14} className="me-2" />
+              Thanh toán VNPay (Đang bảo trì)
+            </button>
+          </>
         ) : (
           <button
             onClick={handlePay}
@@ -428,6 +457,7 @@ const StepPayment = ({
         {!paymentConfirmed && (
           <Link
             to="/"
+            onClick={() => sessionStorage.removeItem("catkaa_checkin_state")}
             className="btn w-100 rounded-pill fw-bold py-2 text-decoration-none"
             style={{ background: "#f1f5f9", color: "#64748b", fontSize: "12px" }}
           >
@@ -465,6 +495,28 @@ export default function GuestFlow() {
   const [selectedHotel, setSelectedHotel] = useState<Hotel | null>(null);
   const [checkInResult, setCheckInResult] = useState<OcrCheckInResponse | null>(null);
   const [roomInfo, setRoomInfo] = useState<RoomRecord | null>(null);
+
+  // Restore state from sessionStorage on mount
+  useEffect(() => {
+    const savedState = sessionStorage.getItem("catkaa_checkin_state");
+    if (savedState) {
+      try {
+        const parsed = JSON.parse(savedState);
+        if (parsed.step !== undefined) setStep(parsed.step);
+        if (parsed.selectedHotel) setSelectedHotel(parsed.selectedHotel);
+        if (parsed.checkInResult) setCheckInResult(parsed.checkInResult);
+        if (parsed.roomInfo) setRoomInfo(parsed.roomInfo);
+      } catch (e) {
+        console.error("Failed to parse check-in state", e);
+      }
+    }
+  }, []);
+
+  // Save state to sessionStorage on change
+  useEffect(() => {
+    const stateToSave = { step, selectedHotel, checkInResult, roomInfo };
+    sessionStorage.setItem("catkaa_checkin_state", JSON.stringify(stateToSave));
+  }, [step, selectedHotel, checkInResult, roomInfo]);
 
   useEffect(() => {
     getHotels()

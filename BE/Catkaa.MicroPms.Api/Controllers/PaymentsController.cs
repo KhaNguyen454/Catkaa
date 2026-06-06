@@ -155,5 +155,24 @@ namespace Catkaa.MicroPms.Api.Controllers
 
             return Redirect($"http://localhost:5173/payment-result?success={success.ToString().ToLower()}&ref={vnp_TxnRef}");
         }
+
+        /// <summary>
+        /// [Mock] API giả lập thanh toán thành công để bypass VNPay khi môi trường test lỗi.
+        /// </summary>
+        [HttpPost("{bookingId}/mock-pay")]
+        [AllowAnonymous]
+        public async Task<IActionResult> MockPay(int bookingId)
+        {
+            try
+            {
+                var result = await _paymentService.MockPaymentAsync(bookingId);
+                if (!result.Success) return BadRequest(new { message = result.Message });
+                return Ok(new { message = "Thanh toán giả lập thành công" });
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { message = "Internal server error", details = ex.Message });
+            }
+        }
     }
 }
