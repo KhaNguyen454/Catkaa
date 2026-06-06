@@ -26,7 +26,8 @@ const Checkout: React.FC = () => {
       setBookingCode("");
       setGuestCccd("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Đã xảy ra lỗi, vui lòng thử lại.");
+      setError("Không tìm thấy thông tin đặt phòng. Vui lòng kiểm tra lại Mã Booking và Số CCCD!");
+      setTimeout(() => setError(""), 5000);
     } finally {
       setIsLoading(false);
     }

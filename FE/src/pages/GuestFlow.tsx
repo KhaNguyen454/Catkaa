@@ -127,9 +127,9 @@ const StepScan = ({
       setPhase("done");
       setTimeout(() => onCheckInComplete(result), 1000);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Lỗi khi xử lý ảnh CCCD";
-      setError(msg);
+      setError("Thông tin không khớp với bất kỳ đơn đặt phòng nào đang chờ nhận phòng.");
       setPhase("error");
+      setTimeout(() => setError(""), 5000);
     }
   };
 
@@ -146,9 +146,9 @@ const StepScan = ({
       setPhase("done");
       setTimeout(() => onCheckInComplete(result), 1000);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Lỗi khi lưu thông tin. Vui lòng kiểm tra lại.";
-      setError(msg);
+      setError("Thông tin không khớp với bất kỳ đơn đặt phòng nào đang chờ nhận phòng.");
       setPhase("error");
+      setTimeout(() => setError(""), 5000);
     }
   };
 
@@ -406,6 +406,7 @@ const StepPayment = ({
   const [paid, setPaid] = useState(false);
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [loadingMock, setLoadingMock] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
@@ -438,7 +439,8 @@ const StepPayment = ({
       setPaymentConfirmed(true);
       setPaid(true);
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Thanh toán giả lập thất bại");
+      setError("Quá trình thanh toán đang bị gián đoạn. Vui lòng thử lại sau.");
+      setTimeout(() => setError(""), 5000);
     } finally {
       setLoadingMock(false);
     }
@@ -454,6 +456,12 @@ const StepPayment = ({
           <img src="/images/vnpay-logo.png" alt="VNPay" style={{ height: 16, opacity: 0.9 }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
         </div>
       </div>
+
+      {error && (
+        <div className="bg-danger text-white p-2 text-center" style={{ fontSize: "11px" }}>
+          {error}
+        </div>
+      )}
 
       <div className="flex-grow-1 p-3 overflow-auto" style={{ background: "#F0F4F8" }}>
         {/* Booking summary */}
