@@ -43,32 +43,6 @@ const Header: React.FC = () => {
 
   return (
     <header className="main-header header-style-one style-one">
-      {/* Header Top */}
-      <div className="header-top">
-        <div className="inner-container xl-container">
-          <div className="top-left">
-            <ul className="list-style-one">
-              <li><i className="fa-solid fa-location-dot"></i> 123 Homestay St, Da Lat</li>
-              <li><i className="fa-solid fa-envelope"></i> <a href="mailto:support@catkaa.com">support@catkaa.com</a></li>
-            </ul>
-          </div>
-          <div className="top-right">
-            <ul className="social-icon-one d-flex align-items-center">
-              <li>Follow Us:</li>
-              <li className="ms-3">
-                <a href="#" className="social-link-item"><span className="fab fa-facebook-f"></span></a>
-              </li>
-              <li className="ms-2">
-                <a href="#" className="social-link-item"><span className="fab fa-instagram"></span></a>
-              </li>
-              <li className="ms-2">
-                <a href="#" className="social-link-item"><span className="fab fa-youtube"></span></a>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
       {/* Header Lower */}
       <div className="header-lower">
         <div className="auto-container">
@@ -151,9 +125,14 @@ const Header: React.FC = () => {
                 </Link>
               )}
 
-              <Link to="/check-in" className="checkin-nav-btn">
-                Check-in Ngay
-              </Link>
+              <div className="d-flex flex-column gap-1 justify-content-center">
+                <Link to="/check-in" className="checkin-nav-btn d-flex justify-content-center" style={{ padding: "8px 20px", fontSize: "13px", lineHeight: "1.2" }}>
+                  Check-in
+                </Link>
+                <Link to="/checkout" className="checkout-nav-btn d-none d-md-flex justify-content-center" style={{ padding: "6px 20px", fontSize: "13px", lineHeight: "1.2", borderWidth: "1px" }}>
+                  Check-out
+                </Link>
+              </div>
 
               <button
                 className="d-xl-none border-0 bg-transparent p-1 p-md-2"
@@ -250,11 +229,17 @@ const Header: React.FC = () => {
               <LogIn size={20} /> Đăng Nhập
             </Link>
           )}
+          <Link to="/checkout" onClick={toggleMobileMenu}
+            className="w-100 d-flex align-items-center justify-content-center gap-2 text-decoration-none fw-bold checkout-nav-btn mb-2"
+            style={{ padding: '12px', borderRadius: '10px' }}
+          >
+            Check-out
+          </Link>
           <Link to="/check-in" onClick={toggleMobileMenu}
             className="w-100 d-flex align-items-center justify-content-center gap-2 text-decoration-none fw-bold checkin-nav-btn"
             style={{ padding: '12px', borderRadius: '10px' }}
           >
-            Check-in Ngay
+            Check-in
           </Link>
         </div>
       </div>
@@ -299,6 +284,13 @@ const Header: React.FC = () => {
           display: inline-flex; align-items: center; white-space: nowrap;
         }
         .checkin-nav-btn:hover { background-color: #1686cb !important; transform: translateY(-2px); box-shadow: 0 6px 12px rgba(22, 134, 203, 0.2); }
+
+        .checkout-nav-btn {
+          padding: 10px 24px; border-radius: 50px; font-size: 14px; font-weight: 700;
+          background-color: transparent; color: #e53e3e !important; border: 2px solid #e53e3e; text-decoration: none !important;
+          transition: all 0.3s ease; display: inline-flex; align-items: center; white-space: nowrap;
+        }
+        .checkout-nav-btn:hover { background-color: #e53e3e !important; color: #ffffff !important; transform: translateY(-2px); }
 
         /* User Avatar Button */
         .user-avatar-btn {

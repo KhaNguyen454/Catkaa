@@ -154,6 +154,33 @@ class CheckInService {
   }
 
   /**
+   * Process manual check-in (when OCR fails)
+   */
+  static async manualCheckIn(
+    hotelId: number,
+    data: OcrCheckInDto
+  ): Promise<OcrCheckInResponse> {
+    const response = await fetch(
+      `${API_BASE_URL}/api/hotels/${hotelId}/checkin-manual`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getAuthToken()}`
+        },
+        body: JSON.stringify(data)
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to process manual check-in');
+    }
+
+    return await response.json();
+  }
+
+  /**
    * Update a check-in record
    */
   static async updateCheckInRecord(
@@ -198,6 +225,24 @@ class CheckInService {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to delete check-in record');
+    }
+  }
+
+  /**
+   * Anonymous checkout for guests
+   */
+  static async checkout(bookingCode: string, guestCccd: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/api/checkinrecords/checkout`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ bookingCode, guestCccd })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Trả phòng thất bại');
     }
   }
 }

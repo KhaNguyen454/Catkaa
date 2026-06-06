@@ -113,6 +113,9 @@ const StepScan = ({
   const [phase, setPhase] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [error, setError] = useState("");
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  
+  const [showManualForm, setShowManualForm] = useState(false);
+  const [manualData, setManualData] = useState({ fullName: "", idNumber: "", dateOfBirth: "" });
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -125,6 +128,25 @@ const StepScan = ({
       setTimeout(() => onCheckInComplete(result), 1000);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Lỗi khi xử lý ảnh CCCD";
+      setError(msg);
+      setPhase("error");
+    }
+  };
+
+  const handleManualSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!manualData.fullName.trim() || !manualData.idNumber.trim()) {
+      setError("Vui lòng nhập Họ Tên và Số CCCD");
+      return;
+    }
+    setError("");
+    setPhase("loading");
+    try {
+      const result = await CheckInService.manualCheckIn(hotelId, manualData);
+      setPhase("done");
+      setTimeout(() => onCheckInComplete(result), 1000);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Lỗi khi lưu thông tin. Vui lòng kiểm tra lại.";
       setError(msg);
       setPhase("error");
     }
@@ -143,59 +165,138 @@ const StepScan = ({
       </div>
 
       <div className="flex-grow-1 d-flex flex-column align-items-center justify-content-center p-4 gap-4">
-        <div
-          className="w-100 position-relative rounded-4 overflow-hidden d-flex align-items-center justify-content-center"
-          style={{
-            aspectRatio: "1.58",
-            border: `2px dashed ${phase === "done" ? "#22c55e" : phase === "error" ? "#ef4444" : "#0d6efd"}`,
-            background: phase === "done"
-              ? "rgba(34,197,94,0.07)"
-              : phase === "error"
-              ? "rgba(239,68,68,0.07)"
-              : "rgba(13,110,253,0.05)",
-            cursor: phase === "loading" || phase === "done" ? "default" : "pointer",
-          }}
-          onClick={() => (phase === "idle" || phase === "error") && fileInputRef.current?.click()}
-        >
-          {phase === "loading" && (
-            <motion.div
-              animate={{ top: ["0%", "100%", "0%"] }}
-              transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-              className="position-absolute start-0 end-0"
-              style={{ height: 2, background: "#00d9ff", boxShadow: "0 0 10px #00d9ff", zIndex: 3 }}
-            />
-          )}
+        {showManualForm ? (
+          <div className="w-100 bg-white rounded-4 p-3 shadow-sm text-dark position-relative">
+            <h6 className="fw-bold text-center mb-3 text-primary">Nhập thông tin thủ công</h6>
+            <form onSubmit={handleManualSubmit}>
+              <div className="mb-2">
+                <label className="form-label small fw-bold mb-1">Họ và Tên</label>
+                <input 
+                  type="text" 
+                  className="form-control form-control-sm" 
+                  placeholder="VD: NGUYEN VAN A"
+                  value={manualData.fullName}
+                  onChange={e => setManualData({...manualData, fullName: e.target.value.toUpperCase()})}
+                />
+              </div>
+              <div className="mb-2">
+                <label className="form-label small fw-bold mb-1">Số CCCD / CMND</label>
+                <input 
+                  type="text" 
+                  className="form-control form-control-sm" 
+                  placeholder="12 số CCCD"
+                  value={manualData.idNumber}
+                  onChange={e => setManualData({...manualData, idNumber: e.target.value})}
+                />
+              </div>
+              <div className="mb-3">
+                <label className="form-label small fw-bold mb-1">Ngày sinh (Không bắt buộc)</label>
+                <input 
+                  type="date" 
+                  className="form-control form-control-sm" 
+                  value={manualData.dateOfBirth}
+                  onChange={e => setManualData({...manualData, dateOfBirth: e.target.value})}
+                />
+              </div>
+              
+              {error && (
+                <div className="alert alert-danger p-2 text-center mb-3" style={{ fontSize: "11px" }}>
+                  {error}
+                </div>
+              )}
 
-          {phase === "loading" ? (
-            <Loader2 size={40} className="text-info spin" />
-          ) : phase === "done" ? (
-            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", bounce: 0.5 }}>
-              <Check size={48} className="text-success" />
-            </motion.div>
-          ) : (
-            <CreditCard size={40} className={phase === "error" ? "text-danger opacity-50" : "text-primary opacity-25"} />
-          )}
-
-          <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileUpload} style={{ display: "none" }} />
-        </div>
-
-        <p className="text-white text-center small fw-bold mb-0">
-          {phase === "loading"
-            ? "Đang nhận diện & xác thực booking..."
-            : phase === "done"
-            ? "✓ Xác thực thành công! Đang chuyển..."
-            : "Nhấn vào khung để tải ảnh CCCD lên"}
-        </p>
-
-        {phase === "error" && (
-          <div className="w-100">
-            <div className="rounded-3 p-3 text-center mb-2" style={{ background: "rgba(239,68,68,0.15)", color: "#ff8080", fontSize: "12px" }}>
-              {error}
-            </div>
-            <button onClick={reset} className="btn btn-sm btn-outline-light w-100 rounded-pill" style={{ fontSize: "12px" }}>
-              Thử lại
+              <button 
+                type="submit" 
+                disabled={phase === "loading"}
+                className="btn btn-primary w-100 rounded-pill fw-bold py-2 shadow-sm d-flex justify-content-center align-items-center"
+                style={{ fontSize: "12px" }}
+              >
+                {phase === "loading" ? <Loader2 size={14} className="spin me-2" /> : null}
+                Xác nhận thông tin
+              </button>
+            </form>
+            <button 
+              className="btn btn-link w-100 text-decoration-none mt-2 small text-muted"
+              onClick={() => { setShowManualForm(false); reset(); }}
+              style={{ fontSize: "12px" }}
+            >
+              Quay lại quét ảnh
             </button>
           </div>
+        ) : (
+          <>
+            <div
+              className="w-100 position-relative rounded-4 overflow-hidden d-flex align-items-center justify-content-center"
+              style={{
+                aspectRatio: "1.58",
+                border: `2px dashed ${phase === "done" ? "#22c55e" : phase === "error" ? "#ef4444" : "#0d6efd"}`,
+                background: phase === "done"
+                  ? "rgba(34,197,94,0.07)"
+                  : phase === "error"
+                  ? "rgba(239,68,68,0.07)"
+                  : "rgba(13,110,253,0.05)",
+                cursor: phase === "loading" || phase === "done" ? "default" : "pointer",
+              }}
+              onClick={() => (phase === "idle" || phase === "error") && fileInputRef.current?.click()}
+            >
+              {phase === "loading" && (
+                <motion.div
+                  animate={{ top: ["0%", "100%", "0%"] }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                  className="position-absolute start-0 end-0"
+                  style={{ height: 2, background: "#00d9ff", boxShadow: "0 0 10px #00d9ff", zIndex: 3 }}
+                />
+              )}
+
+              {phase === "loading" ? (
+                <Loader2 size={40} className="text-info spin" />
+              ) : phase === "done" ? (
+                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", bounce: 0.5 }}>
+                  <Check size={48} className="text-success" />
+                </motion.div>
+              ) : (
+                <CreditCard size={40} className={phase === "error" ? "text-danger opacity-50" : "text-primary opacity-25"} />
+              )}
+
+              <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileUpload} style={{ display: "none" }} />
+            </div>
+
+            <p className="text-white text-center small fw-bold mb-0">
+              {phase === "loading"
+                ? "Đang nhận diện & xác thực booking..."
+                : phase === "done"
+                ? "✓ Xác thực thành công! Đang chuyển..."
+                : "Nhấn vào khung để tải ảnh CCCD lên"}
+            </p>
+
+            {phase === "idle" && (
+              <button 
+                className="btn btn-link text-info text-decoration-none small mt-2"
+                onClick={() => setShowManualForm(true)}
+                style={{ fontSize: "12px" }}
+              >
+                Không quét được ảnh? Nhập thông tin thủ công
+              </button>
+            )}
+
+            {phase === "error" && (
+              <div className="w-100">
+                <div className="rounded-3 p-3 text-center mb-2" style={{ background: "rgba(239,68,68,0.15)", color: "#ff8080", fontSize: "12px" }}>
+                  {error}
+                </div>
+                <button onClick={reset} className="btn btn-sm btn-outline-light w-100 rounded-pill" style={{ fontSize: "12px" }}>
+                  Thử lại
+                </button>
+                <button 
+                  className="btn btn-link w-100 text-info text-decoration-none mt-2"
+                  onClick={() => { setShowManualForm(true); reset(); }}
+                  style={{ fontSize: "12px" }}
+                >
+                  Hoặc nhập thông tin thủ công
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

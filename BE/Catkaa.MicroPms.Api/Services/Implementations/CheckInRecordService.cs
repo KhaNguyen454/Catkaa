@@ -211,7 +211,33 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
 
             _context.CheckInRecords.Remove(record);
             await _context.SaveChangesAsync();
-            return ServiceResult<object>.Ok("Deleted");
+
+            return ServiceResult<object>.Ok("Success");
+        }
+
+        public async Task<ServiceResult<object>> CheckOutAsync(CheckOutRequestDto request)
+        {
+            var booking = await _context.Bookings
+                .FirstOrDefaultAsync(b => b.BookingCode == request.BookingCode && b.GuestCccd == request.GuestCccd && b.Status == "CheckIn");
+
+            if (booking == null) return ServiceResult<object>.Fail("Không tìm thấy Booking hoặc Booking chưa được Check-in.");
+
+            var room = await _context.Rooms.FirstOrDefaultAsync(r => r.Id == booking.RoomId);
+            if (room != null)
+            {
+                room.IsAvailable = true;
+            }
+
+            booking.Status = "CheckOut";
+
+            var record = await _context.CheckInRecords.FirstOrDefaultAsync(r => r.BookingId == booking.Id);
+            if (record != null)
+            {
+                record.CheckOutTime = DateTime.Now;
+            }
+
+            await _context.SaveChangesAsync();
+            return ServiceResult<object>.Ok("Trả phòng thành công");
         }
     }
 }

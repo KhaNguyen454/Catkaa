@@ -326,7 +326,7 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
 
             decimal totalAmount = days * (booking.Room?.Price ?? 0);
 
-            booking.Status = "Confirmed";
+            booking.Status = "CheckIn";
             _context.Payments.Add(new Payment
             {
                 BookingId = booking.Id,

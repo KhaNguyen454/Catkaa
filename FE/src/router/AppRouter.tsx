@@ -10,6 +10,7 @@ import Login from "../pages/Login";
 import Register from "../pages/Register";
 import Services from "../pages/Services";
 import TestBooking from "../pages/TestBooking";
+import Checkout from "../pages/Checkout";
 import { getAuthRole, getAuthToken } from "../services/authService";
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
@@ -51,6 +52,7 @@ const AppRouter: React.FC = () => {
         <Route path="register" element={<Register />} />
         <Route path="test-booking" element={<TestBooking />} />
         <Route path="my-history" element={<GuestHistory />} />
+        <Route path="checkout" element={<Checkout />} />
       </Route>
 
       {/* VNPay return page — standalone, no layout */}

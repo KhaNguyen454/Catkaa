@@ -13,5 +13,6 @@ namespace Catkaa.MicroPms.Api.Services.Interfaces
         Task<ServiceResult<OcrCheckInResponseDto>> ProcessOcrCheckInAsync(int hotelId, OcrCheckInDto request, int currentUserId);
         Task<ServiceResult<object>> UpdateAsync(int id, CheckInRecordUpdateDto dto, string role, int? currentUserId);
         Task<ServiceResult<object>> DeleteAsync(int id, string role, int? currentUserId);
+        Task<ServiceResult<object>> CheckOutAsync(CheckOutRequestDto request);
     }
 }
