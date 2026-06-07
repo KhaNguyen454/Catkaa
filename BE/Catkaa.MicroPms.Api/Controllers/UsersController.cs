@@ -8,7 +8,7 @@ namespace Catkaa.MicroPms.Api.Controllers
 {
     [Route("api/users")]
     [Microsoft.AspNetCore.Http.Tags("6. Users (Quản lý tài khoản chủ khách sạn)")]
-    [Authorize(Roles = "Admin, Host")]
+    [Authorize]
     public class UsersController : BaseApiController
     {
         private readonly IUserService _userService;
@@ -19,6 +19,7 @@ namespace Catkaa.MicroPms.Api.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin, Host")]
         public async Task<IActionResult> GetAll()
         {
             try
@@ -34,6 +35,7 @@ namespace Catkaa.MicroPms.Api.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Roles = "Admin, Host")]
         public async Task<IActionResult> GetById(int id)
         {
             try
@@ -49,6 +51,7 @@ namespace Catkaa.MicroPms.Api.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, Host")]
         public async Task<IActionResult> Create([FromBody] UserCreateDto request)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -67,6 +70,7 @@ namespace Catkaa.MicroPms.Api.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin, Host")]
         public async Task<IActionResult> Update(int id, [FromBody] UserUpdateDto request)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -85,6 +89,7 @@ namespace Catkaa.MicroPms.Api.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin, Host")]
         public async Task<IActionResult> Delete(int id)
         {
             try
@@ -93,6 +98,25 @@ namespace Catkaa.MicroPms.Api.Controllers
                 if (!result.Success) return Unauthorized(new { message = result.Message });
 
                 return Ok(new { message = result.Message });
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { message = "Internal server error", details = ex.Message });
+            }
+        }
+
+        [HttpPost("upgrade-to-host")]
+        [Authorize(Roles = "Guest")]
+        public async Task<IActionResult> UpgradeToHost([FromBody] UpgradeHostDto request)
+        {
+            if (!CurrentUserId.HasValue) return Unauthorized();
+
+            try
+            {
+                var result = await _userService.UpgradeToHostAsync(CurrentUserId.Value, request.PlanId);
+                if (!result.Success) return BadRequest(new { message = result.Message });
+
+                return Ok(new { message = result.Data.Message, newToken = result.Data.NewToken });
             }
             catch (System.Exception ex)
             {

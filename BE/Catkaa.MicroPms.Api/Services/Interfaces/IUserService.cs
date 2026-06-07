@@ -12,5 +12,6 @@ namespace Catkaa.MicroPms.Api.Services.Interfaces
         Task<ServiceResult<UserResponseDto>> CreateUserAsync(UserCreateDto dto, string role);
         Task<ServiceResult<object>> UpdateUserAsync(int id, UserUpdateDto dto, string role, int? currentUserId);
         Task<ServiceResult<object>> DeleteUserAsync(int id, string role, int? currentUserId);
+        Task<ServiceResult<UpgradeResponseDto>> UpgradeToHostAsync(int userId, int planId);
     }
 }

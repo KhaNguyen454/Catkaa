@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { ArrowRight, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { getAuthRole, getAuthToken, login, setAuthToken } from "../services/authService";
 import { useMessage } from "../components/MessageContext";
@@ -7,6 +7,10 @@ import { useMessage } from "../components/MessageContext";
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const { notify } = useMessage();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const returnUrl = searchParams.get("returnUrl");
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -15,10 +19,14 @@ const Login: React.FC = () => {
 
   useEffect(() => {
     if (getAuthToken()) {
+      if (returnUrl) {
+        navigate(returnUrl, { replace: true });
+        return;
+      }
       const role = getAuthRole();
       navigate(role === "Admin" || role === "Host" ? "/dashboard" : "/", { replace: true });
     }
-  }, [navigate]);
+  }, [navigate, returnUrl]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -29,8 +37,12 @@ const Login: React.FC = () => {
       const response = await login({ username, password });
       setAuthToken(response.token);
       notify("loginSuccess", "success");
-      const role = getAuthRole();
-      navigate(role === "Admin" || role === "Host" ? "/dashboard" : "/", { replace: true });
+      if (returnUrl) {
+        navigate(returnUrl, { replace: true });
+      } else {
+        const role = getAuthRole();
+        navigate(role === "Admin" || role === "Host" ? "/dashboard" : "/", { replace: true });
+      }
     } catch (submitError) {
       const raw = submitError instanceof Error ? submitError.message : "";
       const errorMsg =

@@ -1,55 +1,89 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { getPricingPlans, PricingPlan } from "../services/pricingService";
+import { getAuthToken, getAuthRole, upgradeToHost, clearAuthToken } from "../services/authService";
+import { Check, ExternalLink, Loader2 } from "lucide-react";
+import { useMessage } from "../components/MessageContext";
 
 const Services: React.FC = () => {
-  const pricingData = [
-    {
-      title: "GÓI TRẢI NGHIỆM",
-      subtitle: "(Free Trial)",
-      price: "0 VNĐ",
-      features: [
-        { name: "Micro PMS", value: "Có" },
-        {
-          name: "PA72 Excel Export",
-          value: "Có (Chuẩn 100%)",
-          highlight: true,
-        },
-        { name: "Hạn mức OCR", value: "30 lượt/tháng" },
-        { name: "Nhắc nhở chủ nhà", value: "Có" },
-        { name: "Smart Lock", value: "Không", disabled: true },
-      ],
-      btnText: "Dùng Thử",
-      popular: false,
-    },
-    {
-      title: "Gói SỞ HỮU",
-      subtitle: "(Basic - Mua đứt)",
-      price: "Giá khóa + Phí setup",
-      features: [
-        { name: "Micro PMS", value: "Sở hữu vĩnh viễn" },
-        { name: "PA72 Excel Export", value: "Có" },
-        { name: "Hạn mức OCR", value: "Trả phí theo lượt dùng" },
-        { name: "Nhắc nhở chủ nhà", value: "Có" },
-        { name: "Smart Lock", value: "Mua đứt phần cứng" },
-      ],
-      btnText: "Đăng Ký",
-      popular: true,
-    },
-    {
-      title: "GÓI TOÀN DIỆN",
-      subtitle: "(Pro - Thuê bao)",
-      price: "899.000 VNĐ / tháng",
-      features: [
-        { name: "Micro PMS", value: "Thuê bao hàng tháng" },
-        { name: "PA72 Excel Export", value: "Có" },
-        { name: "Hạn mức OCR", value: "Không giới hạn*", highlight: true },
-        { name: "Nhắc nhở chủ nhà", value: "Có" },
-        { name: "Smart Lock", value: "Thuê phần cứng (HaaS)" },
-      ],
-      btnText: "Đăng Ký",
-      popular: false,
-    },
-  ];
+  const [pricingData, setPricingData] = useState<PricingPlan[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [packageToConfirm, setPackageToConfirm] = useState<PricingPlan | null>(null);
+  const [selectedPackageForPayment, setSelectedPackageForPayment] = useState<PricingPlan | null>(null);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const navigate = useNavigate();
+  const { notify } = useMessage();
+
+  useEffect(() => {
+    getPricingPlans()
+      .then(setPricingData)
+      .catch((err) => console.error("Failed to load pricing plans", err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleRegisterClick = async (e: React.MouseEvent, pkg: PricingPlan) => {
+    e.preventDefault();
+    const token = getAuthToken();
+    const role = getAuthRole();
+
+    if (!token) {
+      notify("Để có thể đăng ký dịch vụ, yêu cầu quý khách đăng ký tài khoản", "warning");
+      navigate("/register?returnUrl=/services");
+      return;
+    }
+
+    // Luôn mở Modal xác nhận trước
+    setPackageToConfirm(pkg);
+  };
+
+  const handleConfirmUpgrade = async (pkg: PricingPlan) => {
+    // Ẩn modal xác nhận
+    setPackageToConfirm(null);
+
+    // Bỏ qua thanh toán nếu gói là miễn phí (gói Trải Nghiệm - ID 1)
+    if (pkg.id === 1 || pkg.price === "0 VNĐ") {
+      setIsProcessingPayment(true);
+      try {
+        const response = await upgradeToHost(pkg.id);
+        notify(response.message || "Nâng cấp thành công", "success");
+        clearAuthToken();
+        setTimeout(() => navigate("/login"), 2500);
+      } catch (err: any) {
+        notify(err.message || "Có lỗi xảy ra khi đăng ký", "error");
+      } finally {
+        setIsProcessingPayment(false);
+      }
+      return;
+    }
+
+    // Nếu có giá tiền, mở Modal Payment
+    setSelectedPackageForPayment(pkg);
+  };
+
+  const handleMockPayment = async (pkg: PricingPlan) => {
+    setIsProcessingPayment(true);
+    try {
+      const response = await upgradeToHost(pkg.id);
+      notify("Thanh toán thành công! " + (response.message || ""), "success");
+      clearAuthToken();
+      setTimeout(() => navigate("/login"), 3000);
+    } catch (err: any) {
+      notify(err.message || "Có lỗi xảy ra khi thanh toán", "error");
+    } finally {
+      setIsProcessingPayment(false);
+      setSelectedPackageForPayment(null);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="services-page d-flex justify-content-center align-items-center" style={{ height: "60vh" }}>
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="services-page">
@@ -143,14 +177,14 @@ const Services: React.FC = () => {
           <div className="row g-4 justify-content-center align-items-stretch">
             {pricingData.map((pkg, idx) => (
               <div
-                key={idx}
+                key={pkg.id}
                 className="col-xl-4 col-md-6 wow fadeInUp"
                 data-wow-delay={`${idx * 100}ms`}
               >
                 <div
-                  className={`pricing-card h-100 shadow-sm bg-white p-5 rounded-5 border-0 text-center transition-all position-relative overflow-hidden ${pkg.popular ? "border-2 scale-105" : ""}`}
+                  className={`pricing-card h-100 shadow-sm bg-white p-5 rounded-5 border-0 text-center transition-all position-relative ${pkg.isPopular ? "border-2 scale-105" : ""}`}
                   style={
-                    pkg.popular
+                    pkg.isPopular
                       ? {
                           borderColor: "#1686cb",
                           transform: "scale(1.05)",
@@ -159,27 +193,17 @@ const Services: React.FC = () => {
                       : {}
                   }
                 >
-                  {pkg.popular && (
+                  {pkg.isPopular && (
                     <div
-                      className="popular-badge"
-                      style={{
-                        backgroundColor: "#1686cb",
-                        color: "#fff",
-                        position: "absolute",
-                        top: "20px",
-                        right: "-35px",
-                        padding: "5px 40px",
-                        transform: "rotate(45deg)",
-                        fontSize: "12px",
-                        fontWeight: "bold",
-                      }}
+                      className="popular-badge position-absolute top-0 start-50 translate-middle text-white fw-bold px-4 py-1 rounded-pill"
+                      style={{ backgroundColor: "#1686cb" }}
                     >
                       PHỔ BIẾN
                     </div>
                   )}
 
                   <div className="pricing-header mb-4">
-                    <h4 className="fw-bold text-dark mb-1">{pkg.title}</h4>
+                    <h4 className="fw-bold text-dark mb-1">{pkg.name}</h4>
                     <p className="text-muted small">{pkg.subtitle}</p>
                     <div className="price-box my-4">
                       <h3
@@ -213,19 +237,19 @@ const Services: React.FC = () => {
                     ))}
                   </div>
 
-                  <Link
-                    to="/contact"
+                  <button
+                    onClick={(e) => handleRegisterClick(e, pkg)}
                     className="theme-btn w-100 rounded-pill py-3 d-flex align-items-center justify-content-center transition-all"
                     style={{
-                      backgroundColor: pkg.popular ? "#1686cb" : "#f8f9fa",
-                      color: pkg.popular ? "#fff" : "#333",
-                      border: pkg.popular ? "none" : "1px solid #ddd",
+                      backgroundColor: pkg.isPopular ? "#1686cb" : "#f8f9fa",
+                      color: pkg.isPopular ? "#fff" : "#333",
+                      border: pkg.isPopular ? "none" : "1px solid #ddd",
                       fontWeight: "bold",
                       textDecoration: "none",
                     }}
                   >
                     <span className="btn-title">{pkg.btnText}</span>
-                  </Link>
+                  </button>
                 </div>
               </div>
             ))}
@@ -240,11 +264,96 @@ const Services: React.FC = () => {
         </div>
       </section>
 
+      {/* Payment Modal */}
+      {selectedPackageForPayment && (
+        <div className="modal fade show d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+          <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: "450px" }}>
+            <div className="modal-content rounded-4 border-0 shadow-lg">
+              <div className="modal-header border-bottom-0 pb-0">
+                <h5 className="modal-title fw-bold">Thanh toán gói dịch vụ</h5>
+                <button 
+                  type="button" 
+                  className="btn-close" 
+                  onClick={() => setSelectedPackageForPayment(null)}
+                  disabled={isProcessingPayment}
+                ></button>
+              </div>
+              <div className="modal-body p-4 text-center">
+                <div className="mb-4">
+                  <h4 className="fw-bold" style={{ color: "#1686cb" }}>{selectedPackageForPayment.name}</h4>
+                  <h5 className="text-muted mb-0">{selectedPackageForPayment.price}</h5>
+                </div>
+                
+                <div className="d-flex flex-column gap-3">
+                  <button
+                    onClick={() => handleMockPayment(selectedPackageForPayment)}
+                    disabled={isProcessingPayment}
+                    className="btn rounded-pill text-white fw-bold py-3 shadow-sm d-flex justify-content-center align-items-center"
+                    style={{ background: "#10b981", fontSize: "14px" }}
+                  >
+                    {isProcessingPayment ? <Loader2 size={18} className="me-2 spin" /> : <Check size={18} className="me-2" />}
+                    {isProcessingPayment ? "Đang xử lý..." : "Thanh toán (Giả lập)"}
+                  </button>
+                  
+                  <button
+                    className="btn rounded-pill text-white fw-bold py-3 shadow-sm d-flex justify-content-center align-items-center"
+                    style={{ background: "#94a3b8", fontSize: "14px" }}
+                    onClick={() => alert("Cổng thanh toán VNPay hiện đang được bảo trì. Vui lòng sử dụng tính năng Thanh toán (Giả lập).")}
+                    disabled={isProcessingPayment}
+                  >
+                    <ExternalLink size={18} className="me-2" /> 
+                    Thanh toán VNPay (Đang bảo trì)
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal */}
+      {packageToConfirm && (
+        <div className="modal fade show d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)", zIndex: 1050 }}>
+          <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: "400px" }}>
+            <div className="modal-content rounded-4 border-0 shadow-lg">
+              <div className="modal-body p-4 text-center">
+                <div className="mb-3">
+                  <h5 className="fw-bold">Xác nhận đăng ký gói</h5>
+                  <p className="text-muted small">
+                    Việc sử dụng gói <strong className="text-primary">{packageToConfirm.name}</strong> sẽ kích hoạt quyền <strong>CHỦ KHÁCH SẠN</strong> cho tài khoản của bạn.
+                  </p>
+                  <p className="text-muted small mb-0">Bạn có chắc chắn muốn tiếp tục không?</p>
+                </div>
+                <div className="d-flex gap-2 justify-content-center mt-4">
+                  <button 
+                    className="btn btn-light rounded-pill px-4 fw-bold shadow-sm" 
+                    onClick={() => setPackageToConfirm(null)}
+                    disabled={isProcessingPayment}
+                  >
+                    Hủy bỏ
+                  </button>
+                  <button 
+                    className="btn btn-primary rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center" 
+                    onClick={() => handleConfirmUpgrade(packageToConfirm)}
+                    disabled={isProcessingPayment}
+                  >
+                    {isProcessingPayment ? <Loader2 size={16} className="me-2 spin" /> : null}
+                    Đồng ý
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <style>{`
         .pricing-card { transition: all 0.4s ease; }
         .pricing-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(22, 134, 203, 0.15) !important; }
         .scale-105 { transform: scale(1.05); }
         .fw-900 { font-weight: 900; }
+        .spin { animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
     </div>
   );

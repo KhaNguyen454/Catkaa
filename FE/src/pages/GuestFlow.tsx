@@ -114,7 +114,7 @@ const StepScan = ({
   const [phase, setPhase] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [error, setError] = useState("");
   const fileInputRef = React.useRef<HTMLInputElement>(null);
-  
+
   const [showManualForm, setShowManualForm] = useState(false);
   const [manualData, setManualData] = useState({ fullName: "", idNumber: "", dateOfBirth: "" });
 
@@ -233,49 +233,69 @@ const StepScan = ({
         QUÉT CCCD / CMND
       </div>
 
+      <style>{`
+        .manual-input::placeholder {
+          color: rgba(255,255,255,0.4) !important;
+        }
+        .manual-input {
+          background-color: rgba(255,255,255,0.05) !important;
+          border: 1px solid rgba(255,255,255,0.1) !important;
+          color: #fff !important;
+        }
+        .manual-input:focus {
+          background-color: rgba(255,255,255,0.1) !important;
+          border-color: #1686cb !important;
+          box-shadow: none !important;
+        }
+        .manual-input[type="date"]::-webkit-calendar-picker-indicator {
+          filter: invert(1);
+          opacity: 0.5;
+        }
+      `}</style>
+
       <div className="flex-grow-1 d-flex flex-column align-items-center justify-content-center p-4 gap-4">
         {showManualForm ? (
-          <div className="w-100 bg-white rounded-4 p-3 shadow-sm text-dark position-relative">
-            <h6 className="fw-bold text-center mb-3 text-primary">Nhập thông tin thủ công</h6>
+          <div className="w-100 rounded-4 p-3 shadow-sm text-white position-relative" style={{ background: "#2a2d3e" }}>
+            <h6 className="fw-bold text-center mb-3 text-info">Nhập thông tin thủ công</h6>
             <form onSubmit={handleManualSubmit}>
               <div className="mb-2">
                 <label className="form-label small fw-bold mb-1">Họ và Tên</label>
-                <input 
-                  type="text" 
-                  className="form-control form-control-sm" 
+                <input
+                  type="text"
+                  className="form-control form-control-sm manual-input"
                   placeholder="VD: NGUYEN VAN A"
                   value={manualData.fullName}
-                  onChange={e => setManualData({...manualData, fullName: e.target.value.toUpperCase()})}
+                  onChange={e => setManualData({ ...manualData, fullName: e.target.value.toUpperCase() })}
                 />
               </div>
               <div className="mb-2">
                 <label className="form-label small fw-bold mb-1">Số CCCD / CMND</label>
-                <input 
-                  type="text" 
-                  className="form-control form-control-sm" 
+                <input
+                  type="text"
+                  className="form-control form-control-sm manual-input"
                   placeholder="12 số CCCD"
                   value={manualData.idNumber}
-                  onChange={e => setManualData({...manualData, idNumber: e.target.value})}
+                  onChange={e => setManualData({ ...manualData, idNumber: e.target.value })}
                 />
               </div>
               <div className="mb-3">
-                <label className="form-label small fw-bold mb-1">Ngày sinh (Không bắt buộc)</label>
-                <input 
-                  type="date" 
-                  className="form-control form-control-sm" 
+                <label className="form-label small fw-bold mb-1">Ngày sinh</label>
+                <input
+                  type="date"
+                  className="form-control form-control-sm manual-input"
                   value={manualData.dateOfBirth}
-                  onChange={e => setManualData({...manualData, dateOfBirth: e.target.value})}
+                  onChange={e => setManualData({ ...manualData, dateOfBirth: e.target.value })}
                 />
               </div>
-              
+
               {error && (
                 <div className="alert alert-danger p-2 text-center mb-3" style={{ fontSize: "11px" }}>
                   {error}
                 </div>
               )}
 
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 disabled={phase === "loading"}
                 className="btn btn-primary w-100 rounded-pill fw-bold py-2 shadow-sm d-flex justify-content-center align-items-center"
                 style={{ fontSize: "12px" }}
@@ -284,8 +304,8 @@ const StepScan = ({
                 Xác nhận thông tin
               </button>
             </form>
-            <button 
-              className="btn btn-link w-100 text-decoration-none mt-2 small text-muted"
+            <button
+              className="btn btn-link w-100 text-decoration-none mt-2 small text-white opacity-50"
               onClick={() => { setShowManualForm(false); reset(); }}
               style={{ fontSize: "12px" }}
             >
@@ -295,7 +315,7 @@ const StepScan = ({
         ) : (
           <>
             <canvas ref={canvasRef} style={{ display: "none" }} />
-            
+
             {(phase === "idle" || phase === "error") && !showManualForm && (
               <div className="d-flex bg-secondary bg-opacity-25 rounded-pill p-1 mb-2" style={{ width: "100%", maxWidth: "300px" }}>
                 <button
@@ -323,10 +343,10 @@ const StepScan = ({
                 background: phase === "done"
                   ? "rgba(34,197,94,0.07)"
                   : phase === "error"
-                  ? "rgba(239,68,68,0.07)"
-                  : scanMode === "camera"
-                  ? "#000"
-                  : "rgba(13,110,253,0.05)",
+                    ? "rgba(239,68,68,0.07)"
+                    : scanMode === "camera"
+                      ? "#000"
+                      : "rgba(13,110,253,0.05)",
                 cursor: (scanMode === "upload" || phase === "error") && phase !== "loading" && phase !== "done" ? "pointer" : "default",
               }}
               onClick={() => {
@@ -358,7 +378,7 @@ const StepScan = ({
                 <div className="text-center p-3">
                   <Camera size={32} className="text-danger opacity-50 mb-2" />
                   <p className="text-white small fw-bold mb-0">{cameraError}</p>
-                  <button 
+                  <button
                     className="btn btn-sm btn-outline-light mt-3"
                     onClick={() => setScanMode("upload")}
                   >
@@ -386,16 +406,16 @@ const StepScan = ({
                 <CreditCard size={40} className={phase === "error" ? "text-danger opacity-50 position-absolute" : "text-primary opacity-25 position-absolute"} style={{ zIndex: 2 }} />
               )}
 
-            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileUpload} style={{ display: "none" }} />
+              <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileUpload} style={{ display: "none" }} />
             </div>
 
             {scanMode === "camera" && phase === "idle" && !cameraError && (
-              <button 
+              <button
                 className="btn btn-primary w-100 rounded-pill fw-bold py-2 shadow-sm mb-1 d-flex align-items-center justify-content-center"
                 onClick={captureImage}
                 style={{ fontSize: "14px" }}
               >
-                <Camera size={18} className="me-2" /> 📸 Chụp ảnh CCCD
+                <Camera size={18} className="me-2" />Chụp ảnh CCCD
               </button>
             )}
 
@@ -403,14 +423,14 @@ const StepScan = ({
               {phase === "loading"
                 ? "Đang nhận diện & xác thực booking..."
                 : phase === "done"
-                ? "✓ Xác thực thành công! Đang chuyển..."
-                : scanMode === "upload" 
-                ? "Nhấn vào khung để tải ảnh CCCD lên"
-                : ""}
+                  ? "✓ Xác thực thành công! Đang chuyển..."
+                  : scanMode === "upload"
+                    ? "Nhấn vào khung để tải ảnh CCCD lên"
+                    : ""}
             </p>
 
             {phase === "idle" && (
-              <button 
+              <button
                 className="btn btn-link text-info text-decoration-none small mt-2"
                 onClick={() => setShowManualForm(true)}
                 style={{ fontSize: "12px" }}
@@ -427,7 +447,7 @@ const StepScan = ({
                 <button onClick={reset} className="btn btn-sm btn-outline-light w-100 rounded-pill" style={{ fontSize: "12px" }}>
                   Thử lại
                 </button>
-                <button 
+                <button
                   className="btn btn-link w-100 text-info text-decoration-none mt-2"
                   onClick={() => { setShowManualForm(true); reset(); }}
                   style={{ fontSize: "12px" }}
@@ -463,9 +483,9 @@ const StepCheckInDone = ({
 
   const checkInTime = data?.checkInTime
     ? new Date(data.checkInTime).toLocaleString("vi-VN", {
-        hour: "2-digit", minute: "2-digit",
-        day: "2-digit", month: "2-digit", year: "numeric",
-      })
+      hour: "2-digit", minute: "2-digit",
+      day: "2-digit", month: "2-digit", year: "numeric",
+    })
     : "—";
 
   const roomLabel = roomInfo
@@ -781,7 +801,7 @@ export default function GuestFlow() {
   useEffect(() => {
     getHotels()
       .then(setHotels)
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoadingHotels(false));
   }, []);
 

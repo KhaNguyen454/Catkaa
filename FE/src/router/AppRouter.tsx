@@ -2,6 +2,7 @@ import React from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import MainLayout from "../components/layout/MainLayout";
 import Home from "../pages/Home";
+import About from "../pages/About";
 import GuestFlow from "../pages/GuestFlow";
 import GuestHistory from "../pages/GuestHistory";
 import OwnerDashboard from "../pages/OwnerDashboard";
@@ -11,6 +12,7 @@ import Register from "../pages/Register";
 import Services from "../pages/Services";
 import TestBooking from "../pages/TestBooking";
 import Checkout from "../pages/Checkout";
+import Contact from "../pages/Contact";
 import { getAuthRole, getAuthToken } from "../services/authService";
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
@@ -22,21 +24,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   return <>{children}</>;
 };
 
-const About = () => (
-  <section className="pt-120 pb-120 auto-container">
-    <h2>Giới Thiệu</h2>
-    <p>
-      Hệ thống CATKAA cung cấp giải pháp pháp lý và tự động hóa toàn diện cho
-      Homestay.
-    </p>
-  </section>
-);
-const Contact = () => (
-  <section className="pt-120 pb-120 auto-container">
-    <h2>Liên Hệ</h2>
-    <p>Email: support@catkaa.com | Hotline: +84 123 456 789</p>
-  </section>
-);
+
 
 const AppRouter: React.FC = () => {
   return (

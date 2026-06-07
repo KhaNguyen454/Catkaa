@@ -4,6 +4,7 @@ using Catkaa.MicroPms.Api.Helpers;
 using Catkaa.MicroPms.Api.Models;
 using Catkaa.MicroPms.Api.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,10 +14,14 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
     public class UserService : IUserService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IEmailService _emailService;
+        private readonly IConfiguration _configuration;
 
-        public UserService(ApplicationDbContext context)
+        public UserService(ApplicationDbContext context, IEmailService emailService, IConfiguration configuration)
         {
             _context = context;
+            _emailService = emailService;
+            _configuration = configuration;
         }
 
         public async Task<ServiceResult<List<UserResponseDto>>> GetAllUsersAsync(string role, int? currentUserId)
@@ -146,6 +151,52 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
             return ServiceResult<object>.Ok("Deleted");
+        }
+
+        public async Task<ServiceResult<UpgradeResponseDto>> UpgradeToHostAsync(int userId, int planId)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return ServiceResult<UpgradeResponseDto>.Fail("User not found");
+            }
+
+            var plan = await _context.PricingPlans.FindAsync(planId);
+            if (plan == null || !plan.IsActive)
+            {
+                return ServiceResult<UpgradeResponseDto>.Fail("Invalid or inactive pricing plan");
+            }
+
+            if (user.Role != "Admin")
+            {
+                user.Role = "Host";
+            }
+            await _context.SaveChangesAsync();
+
+            try
+            {
+                var adminEmail = _configuration["SmtpSettings:SenderEmail"] ?? "catkaofficial@gmail.com";
+                var subject = $"Thông báo: Nâng cấp Host - {plan.Name} - {user.Username}";
+                var body = $@"
+                    <h3>Hệ thống vừa có một người dùng đăng ký gói dịch vụ mới!</h3>
+                    <p><strong>Tài khoản:</strong> {user.Username}</p>
+                    <p><strong>Email đăng ký:</strong> {user.Email}</p>
+                    <p><strong>Gói dịch vụ đã chọn:</strong> {plan.Name} ({plan.Price})</p>
+                    <p>Hệ thống đã tự động nâng cấp quyền Host cho tài khoản này.</p>
+                    <p>Vui lòng liên hệ với người dùng thông qua Email hoặc chờ thông tin chi tiết từ Form Liên hệ để hỗ trợ cài đặt và bàn giao phần cứng.</p>
+                ";
+                await _emailService.SendEmailAsync(adminEmail, subject, body);
+            }
+            catch (System.Exception ex)
+            {
+                System.Console.WriteLine($"Failed to send upgrade email: {ex.Message}");
+            }
+
+            return ServiceResult<UpgradeResponseDto>.Ok("Success", new UpgradeResponseDto
+            {
+                Message = "Chúc mừng bạn đã nâng cấp thành công, vui lòng đăng nhập lại để bắt đầu sử dụng quyền của Host.",
+                NewToken = "" // The frontend will require relogin
+            });
         }
     }
 }

@@ -22,6 +22,22 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
             await SendEmailAsync(email, subject, body);
         }
 
+        public async Task SendContactEmailAsync(Catkaa.MicroPms.Api.DTOs.ContactSubmitDto dto)
+        {
+            var adminEmail = _configuration["SmtpSettings:SenderEmail"] ?? "catkaofficial@gmail.com";
+            var subject = $"Đăng Ký Dịch Vụ - {dto.PackageName} - {dto.Name}";
+            var body = $@"
+                <h3>Khách hàng vừa đăng ký gói dịch vụ mới!</h3>
+                <p><strong>Tên:</strong> {dto.Name}</p>
+                <p><strong>Số điện thoại:</strong> {dto.Phone}</p>
+                <p><strong>Email:</strong> {dto.Email}</p>
+                <p><strong>Gói đăng ký:</strong> {dto.PackageName}</p>
+                <p><strong>Lời nhắn:</strong> {dto.Message}</p>
+                <p>Vui lòng liên hệ để hỗ trợ và giao phần cứng.</p>
+            ";
+            await SendEmailAsync(adminEmail, subject, body);
+        }
+
         public async Task SendEmailAsync(string email, string subject, string body)
         {
             var smtpSettings = _configuration.GetSection("SmtpSettings");

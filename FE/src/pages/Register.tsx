@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { ArrowRight, Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 import { getAuthToken } from "../services/authService";
 import { useMessage } from "../components/MessageContext";
@@ -7,6 +7,10 @@ import { useMessage } from "../components/MessageContext";
 const Register: React.FC = () => {
   const navigate = useNavigate();
   const { notify } = useMessage();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const returnUrl = searchParams.get("returnUrl") || "";
+
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -91,7 +95,7 @@ const Register: React.FC = () => {
 
       notify("registerSuccess", "success");
       setSuccess("Đăng ký thành công! Vui lòng đăng nhập.");
-      setTimeout(() => navigate("/login", { replace: true }), 2000);
+      setTimeout(() => navigate(returnUrl ? `/login?returnUrl=${encodeURIComponent(returnUrl)}` : "/login", { replace: true }), 2000);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : "Không thể đăng ký tài khoản";
       setError(errorMsg);

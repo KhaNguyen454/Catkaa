@@ -93,3 +93,23 @@ export function getAuthRole() {
 
   return roleValue ?? null;
 }
+
+export async function upgradeToHost(planId: number): Promise<{ message: string; newToken: string }> {
+  const token = getAuthToken();
+  const response = await fetch(`${API_BASE_URL}/api/users/upgrade-to-host`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ planId }),
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(data?.message ?? "Nâng cấp thất bại");
+  }
+
+  return data;
+}

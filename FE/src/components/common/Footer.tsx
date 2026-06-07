@@ -191,7 +191,7 @@ const Footer: React.FC = () => {
             </div>
 
             {/* Footer Column */}
-            <div className="footer-column col-lg-3 col-sm-6">
+            <div className="footer-column col-lg-2 col-sm-6">
               <div className="footer-widget links-widget">
                 <h5
                   className="widget-title"
@@ -204,7 +204,7 @@ const Footer: React.FC = () => {
                     paddingBottom: "10px",
                   }}
                 >
-                  Hệ Thống Demo
+                  Hệ Thống của CATKAA
                   <span
                     style={{
                       position: "absolute",
@@ -285,7 +285,7 @@ const Footer: React.FC = () => {
             </div>
 
             {/* Footer Column */}
-            <div className="footer-column col-lg-3 col-sm-6">
+            <div className="footer-column col-lg-4 col-sm-6">
               <div className="footer-widget contact-widget">
                 <h5
                   className="widget-title"
@@ -311,26 +311,35 @@ const Footer: React.FC = () => {
                   ></span>
                 </h5>
                 <div className="text-white opacity-75 small mb-3">
-                  123 Homestay St, Da Lat, Vietnam
+                  Lô E2a-7, Đường D1, Khu Công nghệ cao, Phường Tăng Nhơn Phú, TP. Hồ Chí Minh
                 </div>
                 <a
                   className="d-block text-white mb-2"
                   style={{ textDecoration: "none", fontSize: "14px" }}
-                  href="tel:+84123456789"
+                  href="tel:0356022021"
                 >
-                  +84 123 456 789
+                  0356022021
                 </a>
                 <a
-                  className="d-block"
+                  className="d-block mb-2"
                   style={{
                     color: "#1686cb",
                     textDecoration: "none",
                     fontSize: "14px",
                     fontWeight: "bold",
                   }}
-                  href="mailto:support@catkaa.com"
+                  href="mailto:catkaofficial@gmail.com"
                 >
-                  support@catkaa.com
+                  catkaofficial@gmail.com
+                </a>
+                <a
+                  className="d-block text-white"
+                  style={{ textDecoration: "none", fontSize: "14px" }}
+                  href="https://www.facebook.com/profile.php?id=61590199657550"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Fanpage Facebook
                 </a>
               </div>
             </div>

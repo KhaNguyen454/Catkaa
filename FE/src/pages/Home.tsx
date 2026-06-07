@@ -205,7 +205,7 @@ const Home: React.FC = () => {
                           fontSize: "22px",
                         }}
                       >
-                        Hotline: +84 123 456 789
+                        Hotline: 0356 022 021
                       </h5>
                     </div>
                   </div>
