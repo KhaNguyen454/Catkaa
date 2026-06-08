@@ -5,8 +5,37 @@ import { ChevronLeft, ChevronRight, CheckCircle2 } from "lucide-react";
 
 const Home: React.FC = () => {
   const [index, setIndex] = useState(0);
+  const [activeService, setActiveService] = useState(0);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const images = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+  const services = [
+    {
+      title: "Tự động hóa eKYC khách hàng",
+      desc: "Nhận diện CCCD và khuôn mặt khách hàng chỉ trong vài giây, đảm bảo tính xác thực và an toàn cao nhất.",
+      img: "https://images.unsplash.com/photo-1563986768609-322da13575f3?q=80&w=1000&auto=format&fit=crop",
+    },
+    {
+      title: "Báo cáo lưu trú PA72/VNeID",
+      desc: "Tự động kết xuất file Excel chuẩn định dạng PA72, sẵn sàng upload lên hệ thống lưu trú quốc gia chỉ với 1 click.",
+      img: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=1000&auto=format&fit=crop",
+    },
+    {
+      title: "Quản lý booking tập trung",
+      desc: "Đồng bộ trạng thái phòng theo thời gian thực. Theo dõi dòng tiền, doanh thu chi tiết từ nhiều nguồn dễ dàng.",
+      img: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=1000&auto=format&fit=crop",
+    },
+    {
+      title: "Check-in không tiếp xúc",
+      desc: "Khách hàng tự thao tác mở khóa bằng mã PIN qua Web-app, bảo mật tuyệt đối và tiết kiệm chi phí lễ tân.",
+      img: "https://images.unsplash.com/photo-1558002038-1055907df827?q=80&w=1000&auto=format&fit=crop",
+    },
+    {
+      title: "Thanh toán tự động & Minh bạch",
+      desc: "Tích hợp cổng thanh toán VNPay, tự động chia tiền phòng và hoa hồng minh bạch giữa các bên.",
+      img: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=1000&auto=format&fit=crop",
+    },
+  ];
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -426,55 +455,55 @@ const Home: React.FC = () => {
                   className="tab-btns tab-buttons wow fadeInUp"
                   data-wow-delay="100ms"
                 >
-                  <button className="tab-btn active-btn">
-                    <span>01.</span> Tự động hóa eKYC khách hàng{" "}
-                    <i className="fa-solid fa-arrow-right"></i>
-                  </button>
-                  <button className="tab-btn">
-                    <span>02.</span> Báo cáo lưu trú PA72/VNeID{" "}
-                    <i className="fa-solid fa-arrow-right"></i>
-                  </button>
-                  <button className="tab-btn">
-                    <span>03.</span> Quản lý booking tập trung{" "}
-                    <i className="fa-solid fa-arrow-right"></i>
-                  </button>
-                  <button className="tab-btn">
-                    <span>04.</span> Check-in không tiếp xúc{" "}
-                    <i className="fa-solid fa-arrow-right"></i>
-                  </button>
-                  <button className="tab-btn">
-                    <span>05.</span> Thanh toán tự động & Minh bạch{" "}
-                    <i className="fa-solid fa-arrow-right"></i>
-                  </button>
+                  {services.map((svc, idx) => (
+                    <button
+                      key={idx}
+                      className={`tab-btn ${activeService === idx ? "active-btn" : ""}`}
+                      onClick={() => setActiveService(idx)}
+                      style={{
+                        textAlign: "left",
+                        width: "100%",
+                        padding: "20px",
+                        borderBottom: "1px solid #eee",
+                        backgroundColor: activeService === idx ? "#f8f9fa" : "transparent",
+                        borderLeft: activeService === idx ? "4px solid #1686cb" : "4px solid transparent",
+                        transition: "all 0.3s ease",
+                      }}
+                    >
+                      <span className="fw-bold" style={{ color: "#1686cb", marginRight: "15px" }}>0{idx + 1}.</span> 
+                      <span className="fw-bold text-dark fs-5">{svc.title}</span>
+                      <i className="fa-solid fa-arrow-right float-end mt-1" style={{ color: activeService === idx ? "#1686cb" : "#ccc" }}></i>
+                    </button>
+                  ))}
                 </div>
               </div>
               <div
-                className="tabs-content col-lg-6 wow fadeInUp ps-4"
+                className="tabs-content col-lg-6 wow fadeInUp ps-lg-5"
                 data-wow-delay="300ms"
               >
-                <div className="tab active-tab">
-                  <div className="tab-inner-content">
-                    <div className="service-block-h2">
-                      <div className="inner-block">
-                        <div className="image">
-                          <img
-                            className="w-100"
-                            src="https://images.unsplash.com/photo-1563986768609-322da13575f3?q=80&w=1000&auto=format&fit=crop"
-                            alt="Digital Check-in"
-                            style={{ borderRadius: "20px" }}
-                          />
-                        </div>
-                        <div className="contents mt-4">
-                          <h4 className="title">Tự động hóa eKYC khách hàng</h4>
-                          <div className="text">
-                            Nhận diện CCCD và khuôn mặt khách hàng chỉ trong vài
-                            giây, đảm bảo tính xác thực và an toàn cao nhất.
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeService}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.3 }}
+                    className="bg-white rounded-4 shadow-sm border p-3 p-md-4"
+                  >
+                    <img
+                      className="w-100 object-fit-cover mb-4 shadow-sm"
+                      src={services[activeService].img}
+                      alt={services[activeService].title}
+                      style={{ borderRadius: "16px", height: isMobile ? "250px" : "350px" }}
+                    />
+                    <h3 className="fw-bold text-dark mb-3" style={{ fontSize: "24px" }}>
+                      {services[activeService].title}
+                    </h3>
+                    <p className="text-muted fs-6 lh-base mb-0" style={{ fontSize: "16px" }}>
+                      {services[activeService].desc}
+                    </p>
+                  </motion.div>
+                </AnimatePresence>
               </div>
             </div>
           </div>
