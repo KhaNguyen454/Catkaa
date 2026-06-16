@@ -225,6 +225,13 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
             if (booking == null) return ServiceResult<object>.Fail("Không tìm thấy Booking hoặc Booking chưa được Check-in.");
 
             var room = await _context.Rooms.FirstOrDefaultAsync(r => r.Id == booking.RoomId);
+            
+            // Xác thực Mật khẩu phòng
+            if (string.IsNullOrWhiteSpace(request.RoomPassword) || room?.RoomPassword != request.RoomPassword)
+            {
+                return ServiceResult<object>.Fail("Mật khẩu phòng không chính xác.");
+            }
+
             if (room != null)
             {
                 room.Status = "Cleaning";

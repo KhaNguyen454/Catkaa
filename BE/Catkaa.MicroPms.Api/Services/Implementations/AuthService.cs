@@ -12,6 +12,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace Catkaa.MicroPms.Api.Services.Implementations
 {
@@ -90,8 +91,22 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
                 {
                     try
                     {
-                        var subject = "Đăng ký thành công";
-                        var body = $"<p>Chào {user.Username},</p><p>Chúc mừng bạn đã đăng ký thành công tài khoản trên hệ thống StayEase (Catka PMS).</p><p>Vui lòng đăng nhập và bắt đầu trải nghiệm dịch vụ của chúng tôi.</p>";
+                        var frontendUrl = _configuration["FrontendUrl"] ?? "http://localhost:5173";
+                        var loginLink = $"{frontendUrl}/login";
+                        var subject = "Đăng ký thành công - StayEase";
+                        
+                        var templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "EmailTemplates", "WelcomeEmail.html");
+                        var body = "Chào bạn, đăng ký thành công.";
+                        if (File.Exists(templatePath))
+                        {
+                            body = await File.ReadAllTextAsync(templatePath);
+                            body = body.Replace("{{Username}}", user.Username)
+                                       .Replace("{{LoginLink}}", loginLink);
+                        }
+                        else 
+                        {
+                            Console.WriteLine($"Email template not found at: {templatePath}");
+                        }
                         await _emailService.SendEmailAsync(user.Email, subject, body);
                     }
                     catch (Exception ex)

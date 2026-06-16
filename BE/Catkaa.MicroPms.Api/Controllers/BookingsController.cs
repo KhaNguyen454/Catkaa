@@ -33,6 +33,27 @@ namespace Catkaa.MicroPms.Api.Controllers
             }
         }
 
+        [HttpGet("active-rooms")]
+        public async Task<IActionResult> GetActiveRoomsByCccd([FromQuery] string cccd)
+        {
+            if (string.IsNullOrWhiteSpace(cccd))
+            {
+                return BadRequest(new { message = "CCCD is required." });
+            }
+
+            try
+            {
+                var result = await _bookingService.GetActiveRoomsByCccdAsync(cccd);
+                if (!result.Success) return BadRequest(new { message = result.Message });
+                
+                return Ok(new { message = "Success", data = result.Data });
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { message = "Internal server error", details = ex.Message });
+            }
+        }
+
         [HttpPost("/api/hotels/{hotelId}/rooms/{roomId}/bookings")]
         public async Task<IActionResult> CreateBooking(int hotelId, int roomId, [FromBody] BookingCreateDto request)
         {

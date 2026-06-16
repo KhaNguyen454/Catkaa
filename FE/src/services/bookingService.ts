@@ -31,6 +31,15 @@ export interface BookingHistoryResponse {
   status: string;
 }
 
+export interface ActiveRoomResponse {
+  bookingCode: string;
+  roomNumber: string;
+  roomType: string;
+  hotelName: string;
+  checkInDate: string;
+  checkOutDate: string;
+}
+
 class BookingService {
   /**
    * Create a booking for a specific room
@@ -156,6 +165,26 @@ class BookingService {
       const error = await response.json();
       throw new Error(error.message || 'Failed to delete booking');
     }
+  }
+
+  /**
+   * Get active rooms for auto checkout by CCCD
+   */
+  static async getActiveRoomsByCccd(cccd: string): Promise<ActiveRoomResponse[]> {
+    const response = await fetch(
+      `${API_BASE_URL}/api/bookings/active-rooms?cccd=${cccd}`,
+      {
+        method: 'GET'
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to fetch active rooms');
+    }
+
+    const result = await response.json();
+    return result.data;
   }
 }
 

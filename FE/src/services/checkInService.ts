@@ -232,13 +232,13 @@ class CheckInService {
   /**
    * Anonymous checkout for guests
    */
-  static async checkout(bookingCode: string, guestCccd: string): Promise<void> {
+  static async checkout(bookingCode: string, guestCccd: string, roomPassword?: string): Promise<void> {
     const response = await fetch(`${API_BASE_URL}/api/checkinrecords/checkout`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ bookingCode, guestCccd })
+      body: JSON.stringify({ bookingCode, guestCccd, roomPassword })
     });
 
     if (!response.ok) {

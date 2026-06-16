@@ -28,6 +28,30 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
                 .FirstOrDefaultAsync(b => b.GuestCccd == cccd && b.Status == "Confirmed");
         }
 
+        public async Task<ServiceResult<List<object>>> GetActiveRoomsByCccdAsync(string cccd)
+        {
+            var activeRooms = await _context.Bookings
+                .Include(b => b.Hotel)
+                .Include(b => b.Room)
+                .Where(b => b.GuestCccd == cccd 
+                            && b.Status == "CheckIn" 
+                            && b.CheckInDate.Date <= DateTime.UtcNow.Date 
+                            && b.CheckOutDate.Date >= DateTime.UtcNow.Date)
+                .Select(b => new
+                {
+                    BookingCode = b.BookingCode,
+                    RoomNumber = b.Room != null ? b.Room.RoomNumber : null,
+                    RoomType = b.Room != null ? b.Room.RoomType : null,
+                    HotelName = b.Hotel != null ? b.Hotel.Name : null,
+                    CheckInDate = b.CheckInDate,
+                    CheckOutDate = b.CheckOutDate
+                })
+                .Cast<object>()
+                .ToListAsync();
+
+            return ServiceResult<List<object>>.Ok("Success", activeRooms);
+        }
+
         public async Task UpdateBookingStatusAsync(Booking booking, string status)
         {
             booking.Status = status;

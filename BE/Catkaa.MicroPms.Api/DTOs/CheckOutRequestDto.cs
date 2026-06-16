@@ -9,5 +9,7 @@ namespace Catkaa.MicroPms.Api.DTOs
 
         [Required(ErrorMessage = "Số CCCD/CMND là bắt buộc")]
         public string GuestCccd { get; set; } = string.Empty;
+
+        public string RoomPassword { get; set; } = string.Empty;
     }
 }
