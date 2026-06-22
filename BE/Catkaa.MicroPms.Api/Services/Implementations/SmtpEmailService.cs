@@ -1,9 +1,9 @@
 using Catkaa.MicroPms.Api.Services.Interfaces;
 using Microsoft.Extensions.Configuration;
-using System.Net;
-using System.Net.Mail;
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using MimeKit;
 using System.Threading.Tasks;
-
 namespace Catkaa.MicroPms.Api.Services.Implementations
 {
     public class SmtpEmailService : IEmailService
@@ -49,28 +49,26 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
                 var senderName = smtpSettings["SenderName"];
                 var password = smtpSettings["Password"];
 
-                using var client = new SmtpClient(host, port)
-                {
-                    Credentials = new NetworkCredential(senderEmail, password),
-                    EnableSsl = true,
-                    DeliveryMethod = SmtpDeliveryMethod.Network,
-                    UseDefaultCredentials = false,
-                    Timeout = 5000 // 5 seconds timeout (bắt buộc cho Cloud)
-                };
+                var message = new MimeMessage();
+                message.From.Add(new MailboxAddress(senderName, senderEmail));
+                message.To.Add(new MailboxAddress("", email));
+                message.Subject = subject;
 
-                using var mailMessage = new MailMessage
-                {
-                    From = new MailAddress(senderEmail!, senderName),
-                    Subject = subject,
-                    Body = body,
-                    IsBodyHtml = true
-                };
+                var bodyBuilder = new BodyBuilder { HtmlBody = body };
+                message.Body = bodyBuilder.ToMessageBody();
 
-                mailMessage.To.Add(email);
+                using var client = new SmtpClient();
+                client.Timeout = 5000; // 5 seconds timeout (bắt buộc cho Cloud)
 
-                // Quan trọng: Phải dùng client.Send() trong Task.Run thay vì SendMailAsync()
-                // Vì SmtpClient.Timeout KHÔNG CÓ TÁC DỤNG với SendMailAsync()
-                await Task.Run(() => client.Send(mailMessage));
+                // Cấu hình SSL dựa trên port (465 = SslOnConnect, 587 = StartTls)
+                var secureSocketOptions = port == 465 
+                    ? SecureSocketOptions.SslOnConnect 
+                    : SecureSocketOptions.StartTls;
+
+                await client.ConnectAsync(host, port, secureSocketOptions);
+                await client.AuthenticateAsync(senderEmail, password);
+                await client.SendAsync(message);
+                await client.DisconnectAsync(true);
             }
             catch (System.Exception ex)
             {
