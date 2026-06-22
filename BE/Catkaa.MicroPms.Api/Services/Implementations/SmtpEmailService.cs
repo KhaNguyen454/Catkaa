@@ -39,33 +39,41 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
 
         public async Task SendEmailAsync(string email, string subject, string body)
         {
-            var smtpSettings = _configuration.GetSection("SmtpSettings");
-            
-            var host = smtpSettings["Server"];
-            var port = int.Parse(smtpSettings["Port"] ?? "587");
-            var senderEmail = smtpSettings["SenderEmail"];
-            var senderName = smtpSettings["SenderName"];
-            var password = smtpSettings["Password"];
-
-            using var client = new SmtpClient(host, port)
+            try
             {
-                Credentials = new NetworkCredential(senderEmail, password),
-                EnableSsl = true,
-                DeliveryMethod = SmtpDeliveryMethod.Network,
-                UseDefaultCredentials = false
-            };
+                var smtpSettings = _configuration.GetSection("SmtpSettings");
+                
+                var host = smtpSettings["Server"];
+                var port = int.Parse(smtpSettings["Port"] ?? "587");
+                var senderEmail = smtpSettings["SenderEmail"];
+                var senderName = smtpSettings["SenderName"];
+                var password = smtpSettings["Password"];
 
-            using var mailMessage = new MailMessage
+                using var client = new SmtpClient(host, port)
+                {
+                    Credentials = new NetworkCredential(senderEmail, password),
+                    EnableSsl = true,
+                    DeliveryMethod = SmtpDeliveryMethod.Network,
+                    UseDefaultCredentials = false,
+                    Timeout = 10000 // 10 seconds timeout
+                };
+
+                using var mailMessage = new MailMessage
+                {
+                    From = new MailAddress(senderEmail!, senderName),
+                    Subject = subject,
+                    Body = body,
+                    IsBodyHtml = true
+                };
+
+                mailMessage.To.Add(email);
+
+                await client.SendMailAsync(mailMessage);
+            }
+            catch (System.Exception ex)
             {
-                From = new MailAddress(senderEmail!, senderName),
-                Subject = subject,
-                Body = body,
-                IsBodyHtml = true
-            };
-
-            mailMessage.To.Add(email);
-
-            await client.SendMailAsync(mailMessage);
+                System.Console.WriteLine($"[Email Error] Failed to send email to {email}: {ex.Message}");
+            }
         }
     }
 }
