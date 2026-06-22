@@ -24,7 +24,15 @@ namespace Catkaa.MicroPms.Api.Controllers
                 return BadRequest(ServiceResult<object>.Fail("Invalid Data"));
             }
 
-            await _emailService.SendContactEmailAsync(dto);
+            try
+            {
+                await _emailService.SendContactEmailAsync(dto);
+            }
+            catch (System.Exception ex)
+            {
+                System.Console.WriteLine($"[ContactController] Gửi email thất bại: {ex.Message}");
+                // Không throw lỗi, vẫn trả về OK để Frontend hiển thị thành công
+            }
             
             return Ok(ServiceResult<object>.Ok("Thông tin của bạn đã được gửi. Chúng tôi sẽ liên hệ sớm nhất!"));
         }

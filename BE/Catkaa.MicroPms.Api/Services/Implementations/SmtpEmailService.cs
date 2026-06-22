@@ -55,7 +55,7 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
                     EnableSsl = true,
                     DeliveryMethod = SmtpDeliveryMethod.Network,
                     UseDefaultCredentials = false,
-                    Timeout = 10000 // 10 seconds timeout
+                    Timeout = 5000 // 5 seconds timeout (bắt buộc cho Cloud)
                 };
 
                 using var mailMessage = new MailMessage
@@ -68,7 +68,9 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
 
                 mailMessage.To.Add(email);
 
-                await client.SendMailAsync(mailMessage);
+                // Quan trọng: Phải dùng client.Send() trong Task.Run thay vì SendMailAsync()
+                // Vì SmtpClient.Timeout KHÔNG CÓ TÁC DỤNG với SendMailAsync()
+                await Task.Run(() => client.Send(mailMessage));
             }
             catch (System.Exception ex)
             {
