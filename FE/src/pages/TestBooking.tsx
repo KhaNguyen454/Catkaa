@@ -119,7 +119,8 @@ export default function TestBooking() {
   const nights = nightCount(checkInDate, checkOutDate);
   const totalPrice = selectedRoom ? selectedRoom.price * nights : 0;
 
-  const filteredHotels = hotels.filter((h) => 
+  const safeHotels = Array.isArray(hotels) ? hotels : [];
+  const filteredHotels = safeHotels.filter((h) => 
     h.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
     h.address.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -352,7 +353,7 @@ export default function TestBooking() {
                 <Loader2 size={40} className="spin text-primary mb-3" />
                 <p className="text-muted">Đang tải danh sách phòng...</p>
               </div>
-            ) : rooms.length === 0 ? (
+            ) : (Array.isArray(rooms) ? rooms : []).length === 0 ? (
               <div className="bg-white rounded-4 shadow-sm p-5 text-center border-0">
                 <h5 className="fw-bold text-dark">Chưa có phòng nào trống</h5>
                 <p className="text-muted">Vui lòng chọn ngày khác hoặc quay lại chọn chỗ nghỉ khác.</p>
@@ -360,7 +361,7 @@ export default function TestBooking() {
               </div>
             ) : (
               <div className="row g-4">
-                {rooms.map(room => {
+                {(Array.isArray(rooms) ? rooms : []).map(room => {
                   const isAvailable = room.status === "Available";
                   return (
                     <div key={room.id} className="col-md-6 col-lg-4">

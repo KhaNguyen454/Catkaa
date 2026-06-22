@@ -57,12 +57,12 @@ const StepWelcome = ({
             style={{ fontSize: "12px" }}
             value={selectedHotel?.id ?? ""}
             onChange={(e) => {
-              const hotel = hotels.find((h) => h.id === Number(e.target.value)) ?? null;
+              const hotel = (Array.isArray(hotels) ? hotels : []).find((h) => h.id === Number(e.target.value)) ?? null;
               onHotelSelect(hotel);
             }}
           >
             <option value="">-- Chọn khách sạn --</option>
-            {hotels.map((h) => (
+            {(Array.isArray(hotels) ? hotels : []).map((h) => (
               <option key={h.id} value={h.id}>{h.name}</option>
             ))}
           </select>
