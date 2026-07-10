@@ -1,5 +1,6 @@
 using Catkaa.MicroPms.Api.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
@@ -10,10 +11,12 @@ namespace Catkaa.MicroPms.Api.Controllers
     public class PaymentsController : BaseApiController
     {
         private readonly IPaymentService _paymentService;
+        private readonly IConfiguration _configuration;
 
-        public PaymentsController(IPaymentService paymentService)
+        public PaymentsController(IPaymentService paymentService, IConfiguration configuration)
         {
             _paymentService = paymentService;
+            _configuration = configuration;
         }
 
         /// <summary>
@@ -153,7 +156,8 @@ namespace Catkaa.MicroPms.Api.Controllers
             // Fallback: process payment nếu IPN chưa tới
             try { await _paymentService.PaymentExecuteIpnAsync(Request.Query); } catch { /* bỏ qua nếu lỗi */ }
 
-            return Redirect($"http://localhost:5173/payment-result?success={success.ToString().ToLower()}&ref={vnp_TxnRef}");
+            var frontendUrl = _configuration["FrontendUrl"] ?? "http://localhost:5173";
+            return Redirect($"{frontendUrl}/payment-result?success={success.ToString().ToLower()}&ref={vnp_TxnRef}");
         }
 
         /// <summary>
