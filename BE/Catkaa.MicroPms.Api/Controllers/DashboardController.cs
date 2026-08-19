@@ -8,10 +8,12 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Catkaa.MicroPms.Api.Controllers
 {
     [Route("api/dashboard")]
+    [Authorize]
     public class DashboardController : BaseApiController
     {
         private readonly ApplicationDbContext _context;

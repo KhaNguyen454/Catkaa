@@ -337,6 +337,7 @@ const OwnerDashboard: React.FC = () => {
         getDashboardSummary(),
         getCurrentGuests(filters),
       ]);
+      console.log("Dashboard Summary from API:", summary);
       setDashboardSummary(summary);
       setCurrentGuests(guestsData);
     } catch (error) {
