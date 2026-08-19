@@ -125,41 +125,6 @@ const guests = [
   },
 ];
 
-const stats = [
-  {
-    label: "Công suất phòng",
-    value: "85%",
-    trend: "+5.2%",
-    icon: BedDouble,
-    color: "#1686cb",
-    accent: "blue",
-  },
-  {
-    label: "Tổng khách tháng này",
-    value: "124",
-    trend: "+12.1%",
-    icon: Users,
-    color: "#8b5cf6",
-    accent: "purple",
-  },
-  {
-    label: "Doanh thu hôm nay",
-    value: "4.2M ₫",
-    trend: "+8.4%",
-    icon: TrendingUp,
-    color: "#10b981",
-    accent: "green",
-  },
-  {
-    label: "Yêu cầu hỗ trợ",
-    value: "02",
-    trend: "-1",
-    icon: Bell,
-    color: "#f59e0b",
-    accent: "amber",
-  },
-];
-
 type DashboardView = "overview" | "legal" | "hotels" | "rooms" | "users" | "bookings" | "payments" | "pricing" | "support";
 
 const emptyHotelForm = {
@@ -1393,79 +1358,77 @@ const OwnerDashboard: React.FC = () => {
         <div className="db-body">
           {/* ══ OVERVIEW ══ */}
           {view === "overview" ? (() => {
-            let overviewStats = stats;
-            if (dashboardSummary) {
-              if (isAdmin) {
-                overviewStats = [
-                  {
-                    label: "Tổng người dùng",
-                    value: dashboardSummary.totalUsers?.toString() || "0",
-                    trend: "+0",
-                    icon: Users,
-                    color: "#1686cb",
-                    accent: "blue",
-                  },
-                  {
-                    label: "Tổng khách sạn",
-                    value: dashboardSummary.totalHotels?.toString() || "0",
-                    trend: "+0",
-                    icon: BedDouble,
-                    color: "#8b5cf6",
-                    accent: "purple",
-                  },
-                  {
-                    label: "Doanh thu hệ thống",
-                    value: dashboardSummary.totalSystemRevenue || "0 ₫",
-                    trend: "+0%",
-                    icon: TrendingUp,
-                    color: "#10b981",
-                    accent: "green",
-                  },
-                  {
-                    label: "Tổng yêu cầu hỗ trợ",
-                    value: dashboardSummary.totalSupportRequests?.toString() || "0",
-                    trend: "+0",
-                    icon: Bell,
-                    color: "#f59e0b",
-                    accent: "amber",
-                  },
-                ];
-              } else {
-                overviewStats = [
-                  {
-                    label: "Công suất phòng",
-                    value: dashboardSummary.roomOccupancyRate,
-                    trend: "+0%",
-                    icon: BedDouble,
-                    color: "#1686cb",
-                    accent: "blue",
-                  },
-                  {
-                    label: "Tổng khách tháng này",
-                    value: dashboardSummary.totalGuestsThisMonth.toString(),
-                    trend: "+0%",
-                    icon: Users,
-                    color: "#8b5cf6",
-                    accent: "purple",
-                  },
-                  {
-                    label: "Doanh thu hôm nay",
-                    value: dashboardSummary.todayRevenue,
-                    trend: "+0%",
-                    icon: TrendingUp,
-                    color: "#10b981",
-                    accent: "green",
-                  },
-                  {
-                    label: "Yêu cầu hỗ trợ",
-                    value: dashboardSummary.supportRequestsCount.toString().padStart(2, '0'),
-                    trend: "+0",
-                    icon: Bell,
-                    color: "#f59e0b",
-                    accent: "amber",
-                  },
-                ];
-              }
+            let overviewStats: any[] = [];
+            if (isAdmin) {
+              overviewStats = [
+                {
+                  label: "Tổng người dùng",
+                  value: dashboardSummary?.totalUsers?.toString() || "0",
+                  trend: "+0",
+                  icon: Users,
+                  color: "#1686cb",
+                  accent: "blue",
+                },
+                {
+                  label: "Tổng khách sạn",
+                  value: dashboardSummary?.totalHotels?.toString() || "0",
+                  trend: "+0",
+                  icon: BedDouble,
+                  color: "#8b5cf6",
+                  accent: "purple",
+                },
+                {
+                  label: "Doanh thu hệ thống",
+                  value: dashboardSummary?.totalSystemRevenue || "0 ₫",
+                  trend: "+0%",
+                  icon: TrendingUp,
+                  color: "#10b981",
+                  accent: "green",
+                },
+                {
+                  label: "Tổng yêu cầu hỗ trợ",
+                  value: dashboardSummary?.totalSupportRequests?.toString() || "0",
+                  trend: "+0",
+                  icon: Bell,
+                  color: "#f59e0b",
+                  accent: "amber",
+                },
+              ];
+            } else {
+              overviewStats = [
+                {
+                  label: "Công suất phòng",
+                  value: dashboardSummary?.roomOccupancyRate || "0%",
+                  trend: "+0%",
+                  icon: BedDouble,
+                  color: "#1686cb",
+                  accent: "blue",
+                },
+                {
+                  label: "Tổng khách tháng này",
+                  value: dashboardSummary?.totalGuestsThisMonth?.toString() || "0",
+                  trend: "+0%",
+                  icon: Users,
+                  color: "#8b5cf6",
+                  accent: "purple",
+                },
+                {
+                  label: "Doanh thu hôm nay",
+                  value: dashboardSummary?.todayRevenue || "0 ₫",
+                  trend: "+0%",
+                  icon: TrendingUp,
+                  color: "#10b981",
+                  accent: "green",
+                },
+                {
+                  label: "Yêu cầu hỗ trợ",
+                  value: dashboardSummary?.supportRequestsCount?.toString().padStart(2, '0') || "00",
+                  trend: "+0",
+                  icon: Bell,
+                  color: "#f59e0b",
+                  accent: "amber",
+                },
+              ];
             }
 
             return (
