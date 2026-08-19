@@ -28,6 +28,25 @@ namespace Catkaa.MicroPms.Api.Controllers
             var startOfMonth = new DateTime(now.Year, now.Month, 1);
             var today = now.Date;
 
+            if (CurrentUserRole == "Admin")
+            {
+                var totalUsers = await _context.Users.CountAsync();
+                var totalHotels = await _context.Hotels.CountAsync();
+                var totalSystemRevenue = await _context.Payments
+                    .Where(p => p.Status == "Completed")
+                    .SumAsync(p => p.Amount);
+                var totalSupportRequests = await _context.ContactRequests.CountAsync();
+
+                var adminSummary = new DashboardSummaryDto
+                {
+                    TotalUsers = totalUsers,
+                    TotalHotels = totalHotels,
+                    TotalSystemRevenue = $"{totalSystemRevenue:N0} ₫",
+                    TotalSupportRequests = totalSupportRequests
+                };
+                return Ok(ServiceResult<DashboardSummaryDto>.Ok("Success", adminSummary));
+            }
+
             // Room occupancy
             var totalRooms = await _context.Rooms.CountAsync();
             var occupiedRooms = await _context.Rooms.CountAsync(r => r.Status == "Occupied");
@@ -73,11 +92,21 @@ namespace Catkaa.MicroPms.Api.Controllers
         }
 
         [HttpGet("current-guests")]
-        public async Task<IActionResult> GetCurrentGuests()
+        public async Task<IActionResult> GetCurrentGuests([FromQuery] int? day, [FromQuery] int? month, [FromQuery] int? year)
         {
-            var activeBookings = await _context.Bookings
+            var query = _context.Bookings
                 .Include(b => b.Room)
                 .Where(b => b.Status == "CheckedIn")
+                .AsQueryable();
+
+            if (year.HasValue)
+                query = query.Where(b => b.CheckInDate.Year == year.Value || b.CheckOutDate.Year == year.Value);
+            if (month.HasValue)
+                query = query.Where(b => b.CheckInDate.Month == month.Value || b.CheckOutDate.Month == month.Value);
+            if (day.HasValue)
+                query = query.Where(b => b.CheckInDate.Day == day.Value || b.CheckOutDate.Day == day.Value);
+
+            var activeBookings = await query
                 .Select(b => new CurrentGuestDto
                 {
                     Id = b.Id,
@@ -94,11 +123,21 @@ namespace Catkaa.MicroPms.Api.Controllers
         }
 
         [HttpGet("export-guests")]
-        public async Task<IActionResult> ExportGuests()
+        public async Task<IActionResult> ExportGuests([FromQuery] int? day, [FromQuery] int? month, [FromQuery] int? year)
         {
-            var guests = await _context.Bookings
+            var query = _context.Bookings
                 .Include(b => b.Room)
                 .Where(b => b.Status == "CheckedIn")
+                .AsQueryable();
+
+            if (year.HasValue)
+                query = query.Where(b => b.CheckInDate.Year == year.Value || b.CheckOutDate.Year == year.Value);
+            if (month.HasValue)
+                query = query.Where(b => b.CheckInDate.Month == month.Value || b.CheckOutDate.Month == month.Value);
+            if (day.HasValue)
+                query = query.Where(b => b.CheckInDate.Day == day.Value || b.CheckOutDate.Day == day.Value);
+
+            var guests = await query
                 .OrderByDescending(b => b.CheckInDate)
                 .ToListAsync();
 

@@ -10,6 +10,12 @@ namespace Catkaa.MicroPms.Api.DTOs
         public string TodayRevenue { get; set; } = "0 ₫";
         public int SupportRequestsCount { get; set; } = 0;
         public List<RoomStatusChartDto> RoomStatusChart { get; set; } = new List<RoomStatusChartDto>();
+
+        // Admin stats
+        public int TotalUsers { get; set; } = 0;
+        public int TotalHotels { get; set; } = 0;
+        public string TotalSystemRevenue { get; set; } = "0 ₫";
+        public int TotalSupportRequests { get; set; } = 0;
     }
 
     public class RoomStatusChartDto
@@ -28,5 +34,15 @@ namespace Catkaa.MicroPms.Api.DTOs
         public string Checkout { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
         public string Type { get; set; } = string.Empty;
+    }
+
+    public class ContactRequestDto
+    {
+        public int Id { get; set; }
+        public string SenderName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Message { get; set; } = string.Empty;
+        public bool IsResolved { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 }

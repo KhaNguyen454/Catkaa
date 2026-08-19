@@ -70,8 +70,11 @@ import {
   getDashboardSummary,
   getCurrentGuests,
   exportGuestsExcel,
+  getContactRequests,
+  updateContactStatus,
   type DashboardSummary,
-  type CurrentGuest
+  type CurrentGuest,
+  type ContactRequestData
 } from "../services/dashboardService";
 import { useMessage } from "../components/MessageContext";
 
@@ -207,6 +210,13 @@ const OwnerDashboard: React.FC = () => {
   const [dashboardSummary, setDashboardSummary] = useState<DashboardSummary | null>(null);
   const [currentGuests, setCurrentGuests] = useState<CurrentGuest[]>([]);
   const [dashboardLoading, setDashboardLoading] = useState(false);
+  const [guestFilterDay, setGuestFilterDay] = useState("");
+  const [guestFilterMonth, setGuestFilterMonth] = useState("");
+  const [guestFilterYear, setGuestFilterYear] = useState("");
+
+  // Support state
+  const [contactRequests, setContactRequests] = useState<ContactRequestData[]>([]);
+  const [contactRequestsLoading, setContactRequestsLoading] = useState(false);
 
   // Hotel state
   const [hotels, setHotels] = useState<Hotel[]>([]);
@@ -353,9 +363,14 @@ const OwnerDashboard: React.FC = () => {
   const loadDashboardData = async () => {
     setDashboardLoading(true);
     try {
+      const filters = {
+        day: guestFilterDay || undefined,
+        month: guestFilterMonth || undefined,
+        year: guestFilterYear || undefined,
+      };
       const [summary, guestsData] = await Promise.all([
         getDashboardSummary(),
-        getCurrentGuests(),
+        getCurrentGuests(filters),
       ]);
       setDashboardSummary(summary);
       setCurrentGuests(guestsData);
@@ -366,12 +381,25 @@ const OwnerDashboard: React.FC = () => {
     }
   };
 
+  const loadSupportRequests = async () => {
+    setContactRequestsLoading(true);
+    try {
+      const data = await getContactRequests();
+      setContactRequests(data);
+    } catch (error) {
+      console.error("Failed to load contact requests", error);
+    } finally {
+      setContactRequestsLoading(false);
+    }
+  };
+
   useEffect(() => {
     sessionStorage.setItem("db-view", view);
   }, [view]);
 
   useEffect(() => {
     if (view === "overview") void loadDashboardData();
+    if (view === "support") void loadSupportRequests();
     if (view === "hotels" || view === "rooms" || view === "users" || view === "bookings" || view === "payments")
       void loadHotels();
     if (view === "hotels" || view === "rooms") void loadRooms();
@@ -1365,40 +1393,80 @@ const OwnerDashboard: React.FC = () => {
         <div className="db-body">
           {/* ══ OVERVIEW ══ */}
           {view === "overview" ? (() => {
-            const overviewStats = dashboardSummary ? [
-              {
-                label: "Công suất phòng",
-                value: dashboardSummary.roomOccupancyRate,
-                trend: "+0%",
-                icon: BedDouble,
-                color: "#1686cb",
-                accent: "blue",
-              },
-              {
-                label: "Tổng khách tháng này",
-                value: dashboardSummary.totalGuestsThisMonth.toString(),
-                trend: "+0%",
-                icon: Users,
-                color: "#8b5cf6",
-                accent: "purple",
-              },
-              {
-                label: "Doanh thu hôm nay",
-                value: dashboardSummary.todayRevenue,
-                trend: "+0%",
-                icon: TrendingUp,
-                color: "#10b981",
-                accent: "green",
-              },
-              {
-                label: "Yêu cầu hỗ trợ",
-                value: dashboardSummary.supportRequestsCount.toString().padStart(2, '0'),
-                trend: "+0",
-                icon: Bell,
-                color: "#f59e0b",
-                accent: "amber",
-              },
-            ] : stats;
+            let overviewStats = stats;
+            if (dashboardSummary) {
+              if (isAdmin) {
+                overviewStats = [
+                  {
+                    label: "Tổng người dùng",
+                    value: dashboardSummary.totalUsers?.toString() || "0",
+                    trend: "+0",
+                    icon: Users,
+                    color: "#1686cb",
+                    accent: "blue",
+                  },
+                  {
+                    label: "Tổng khách sạn",
+                    value: dashboardSummary.totalHotels?.toString() || "0",
+                    trend: "+0",
+                    icon: BedDouble,
+                    color: "#8b5cf6",
+                    accent: "purple",
+                  },
+                  {
+                    label: "Doanh thu hệ thống",
+                    value: dashboardSummary.totalSystemRevenue || "0 ₫",
+                    trend: "+0%",
+                    icon: TrendingUp,
+                    color: "#10b981",
+                    accent: "green",
+                  },
+                  {
+                    label: "Tổng yêu cầu hỗ trợ",
+                    value: dashboardSummary.totalSupportRequests?.toString() || "0",
+                    trend: "+0",
+                    icon: Bell,
+                    color: "#f59e0b",
+                    accent: "amber",
+                  },
+                ];
+              } else {
+                overviewStats = [
+                  {
+                    label: "Công suất phòng",
+                    value: dashboardSummary.roomOccupancyRate,
+                    trend: "+0%",
+                    icon: BedDouble,
+                    color: "#1686cb",
+                    accent: "blue",
+                  },
+                  {
+                    label: "Tổng khách tháng này",
+                    value: dashboardSummary.totalGuestsThisMonth.toString(),
+                    trend: "+0%",
+                    icon: Users,
+                    color: "#8b5cf6",
+                    accent: "purple",
+                  },
+                  {
+                    label: "Doanh thu hôm nay",
+                    value: dashboardSummary.todayRevenue,
+                    trend: "+0%",
+                    icon: TrendingUp,
+                    color: "#10b981",
+                    accent: "green",
+                  },
+                  {
+                    label: "Yêu cầu hỗ trợ",
+                    value: dashboardSummary.supportRequestsCount.toString().padStart(2, '0'),
+                    trend: "+0",
+                    icon: Bell,
+                    color: "#f59e0b",
+                    accent: "amber",
+                  },
+                ];
+              }
+            }
 
             return (
             <div>
@@ -1491,8 +1559,75 @@ const OwnerDashboard: React.FC = () => {
                           Cập nhật theo thời gian thực
                         </div>
                       </div>
-                      <div style={{ display: "flex", gap: "6px" }}>
+                      <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                        <select
+                          value={guestFilterDay}
+                          onChange={(e) => setGuestFilterDay(e.target.value)}
+                          style={{
+                            height: "30px",
+                            padding: "0 .5rem",
+                            borderRadius: "8px",
+                            border: "1px solid #e2e8f0",
+                            fontSize: ".75rem",
+                            color: "#64748b",
+                          }}
+                        >
+                          <option value="">Ngày</option>
+                          {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
+                            <option key={d} value={d}>{d}</option>
+                          ))}
+                        </select>
+                        <select
+                          value={guestFilterMonth}
+                          onChange={(e) => setGuestFilterMonth(e.target.value)}
+                          style={{
+                            height: "30px",
+                            padding: "0 .5rem",
+                            borderRadius: "8px",
+                            border: "1px solid #e2e8f0",
+                            fontSize: ".75rem",
+                            color: "#64748b",
+                          }}
+                        >
+                          <option value="">Tháng</option>
+                          {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+                            <option key={m} value={m}>{m}</option>
+                          ))}
+                        </select>
+                        <select
+                          value={guestFilterYear}
+                          onChange={(e) => setGuestFilterYear(e.target.value)}
+                          style={{
+                            height: "30px",
+                            padding: "0 .5rem",
+                            borderRadius: "8px",
+                            border: "1px solid #e2e8f0",
+                            fontSize: ".75rem",
+                            color: "#64748b",
+                          }}
+                        >
+                          <option value="">Năm</option>
+                          {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 2 + i).map(y => (
+                            <option key={y} value={y}>{y}</option>
+                          ))}
+                        </select>
                         <button
+                          onClick={async () => {
+                            setDashboardLoading(true);
+                            try {
+                              const filters = {
+                                day: guestFilterDay || undefined,
+                                month: guestFilterMonth || undefined,
+                                year: guestFilterYear || undefined,
+                              };
+                              const data = await getCurrentGuests(filters);
+                              setCurrentGuests(data);
+                            } catch (e) {
+                              console.error("Filter failed", e);
+                            } finally {
+                              setDashboardLoading(false);
+                            }
+                          }}
                           style={{
                             height: "30px",
                             padding: "0 .65rem",
@@ -1513,7 +1648,12 @@ const OwnerDashboard: React.FC = () => {
                         <button
                           onClick={async () => {
                             try {
-                              await exportGuestsExcel();
+                              const filters = {
+                                day: guestFilterDay || undefined,
+                                month: guestFilterMonth || undefined,
+                                year: guestFilterYear || undefined,
+                              };
+                              await exportGuestsExcel(filters);
                               notify("exportSuccess", "success");
                             } catch (e) {
                               notify("exportError", "error");
@@ -1759,7 +1899,73 @@ const OwnerDashboard: React.FC = () => {
                 </div>
               </div>
             </div>
-          );})() : /* ══ HOTELS ══ */
+          );})() : /* ══ SUPPORT ══ */
+          view === "support" ? (
+            <div className="db-card">
+              <div className="db-card-hd" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: ".9rem", color: "#0f172a" }}>Danh sách Yêu cầu hỗ trợ</div>
+                  <div style={{ fontSize: ".7rem", color: "#94a3b8", marginTop: "2px" }}>Quản lý các phản hồi từ khách hàng</div>
+                </div>
+              </div>
+              <div className="table-responsive">
+                <table className="table db-tbl mb-0">
+                  <thead>
+                    <tr>
+                      <th>Người gửi</th>
+                      <th>Email</th>
+                      <th>Ngày gửi</th>
+                      <th>Nội dung</th>
+                      <th>Trạng thái</th>
+                      <th>Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {contactRequestsLoading ? (
+                      <tr><td colSpan={6} style={{textAlign: "center"}}>Đang tải...</td></tr>
+                    ) : contactRequests.map(req => (
+                      <tr key={req.id}>
+                        <td style={{ fontWeight: 600 }}>{req.senderName}</td>
+                        <td>{req.email}</td>
+                        <td>{new Date(req.createdAt).toLocaleDateString("vi-VN")}</td>
+                        <td style={{ maxWidth: "300px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={req.message}>{req.message}</td>
+                        <td>
+                          <span className={`db-badge ${req.isResolved ? "db-badge-active" : "db-badge-warn"}`}>
+                            {req.isResolved ? "Đã giải quyết" : "Chờ xử lý"}
+                          </span>
+                        </td>
+                        <td>
+                          <button
+                            onClick={async () => {
+                              try {
+                                await updateContactStatus(req.id, !req.isResolved);
+                                setContactRequests(prev => prev.map(r => r.id === req.id ? { ...r, isResolved: !req.isResolved } : r));
+                                notify("Cập nhật trạng thái thành công!", "success");
+                              } catch (e) {
+                                notify("Lỗi cập nhật", "error");
+                              }
+                            }}
+                            style={{
+                              height: "28px",
+                              padding: "0 .5rem",
+                              borderRadius: "6px",
+                              background: req.isResolved ? "#f1f5f9" : "#1686cb",
+                              border: "none",
+                              color: req.isResolved ? "#64748b" : "#fff",
+                              fontSize: ".75rem",
+                              cursor: "pointer",
+                            }}
+                          >
+                            {req.isResolved ? "Hoàn tác" : "Xử lý ngay"}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : /* ══ HOTELS ══ */
           view === "hotels" ? (
             <div className="db-card">
               <div
