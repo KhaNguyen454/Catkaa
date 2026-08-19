@@ -15,10 +15,16 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddMemoryCache();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
- //options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 {
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+    if (builder.Environment.IsDevelopment())
+    {
+        options.UseSqlServer(connectionString);
+    }
+    else
+    {
+        options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+    }
 });
 
 builder.Services.AddScoped<IEmailService, SmtpEmailService>();
