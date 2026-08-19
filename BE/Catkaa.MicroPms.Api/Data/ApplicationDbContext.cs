@@ -18,6 +18,7 @@ namespace Catkaa.MicroPms.Api.Data
         public DbSet<Payment> Payments { get; set; }
         public DbSet<PricingPlan> PricingPlans { get; set; }
         public DbSet<Review> Reviews { get; set; }
+        public DbSet<ContactRequest> ContactRequests { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

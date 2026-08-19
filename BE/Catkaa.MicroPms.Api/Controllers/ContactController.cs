@@ -3,6 +3,8 @@ using Catkaa.MicroPms.Api.Helpers;
 using Catkaa.MicroPms.Api.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using Catkaa.MicroPms.Api.Data;
+using System.Threading.Tasks;
 
 namespace Catkaa.MicroPms.Api.Controllers
 {
@@ -10,10 +12,12 @@ namespace Catkaa.MicroPms.Api.Controllers
     public class ContactController : BaseApiController
     {
         private readonly IEmailService _emailService;
+        private readonly ApplicationDbContext _context;
 
-        public ContactController(IEmailService emailService)
+        public ContactController(IEmailService emailService, ApplicationDbContext context)
         {
             _emailService = emailService;
+            _context = context;
         }
 
         [HttpPost("submit")]
@@ -26,6 +30,18 @@ namespace Catkaa.MicroPms.Api.Controllers
 
             try
             {
+                var contactRequest = new Models.ContactRequest
+                {
+                    SenderName = dto.Name,
+                    Email = dto.Email,
+                    Message = dto.Message,
+                    CreatedAt = System.DateTime.UtcNow,
+                    IsResolved = false
+                };
+                
+                _context.ContactRequests.Add(contactRequest);
+                await _context.SaveChangesAsync();
+
                 await _emailService.SendContactEmailAsync(dto);
             }
             catch (System.Exception ex)

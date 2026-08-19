@@ -66,6 +66,13 @@ import {
   updatePricingPlan,
   deletePricingPlan
 } from "../services/pricingService";
+import {
+  getDashboardSummary,
+  getCurrentGuests,
+  exportGuestsExcel,
+  type DashboardSummary,
+  type CurrentGuest
+} from "../services/dashboardService";
 import { useMessage } from "../components/MessageContext";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -150,7 +157,7 @@ const stats = [
   },
 ];
 
-type DashboardView = "overview" | "legal" | "hotels" | "rooms" | "users" | "bookings" | "payments" | "pricing";
+type DashboardView = "overview" | "legal" | "hotels" | "rooms" | "users" | "bookings" | "payments" | "pricing" | "support";
 
 const emptyHotelForm = {
   name: "",
@@ -195,6 +202,11 @@ const OwnerDashboard: React.FC = () => {
     return defaultView;
   });
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+
+  // Dashboard state
+  const [dashboardSummary, setDashboardSummary] = useState<DashboardSummary | null>(null);
+  const [currentGuests, setCurrentGuests] = useState<CurrentGuest[]>([]);
+  const [dashboardLoading, setDashboardLoading] = useState(false);
 
   // Hotel state
   const [hotels, setHotels] = useState<Hotel[]>([]);
@@ -338,11 +350,28 @@ const OwnerDashboard: React.FC = () => {
     }
   };
 
+  const loadDashboardData = async () => {
+    setDashboardLoading(true);
+    try {
+      const [summary, guestsData] = await Promise.all([
+        getDashboardSummary(),
+        getCurrentGuests(),
+      ]);
+      setDashboardSummary(summary);
+      setCurrentGuests(guestsData);
+    } catch (error) {
+      console.error("Failed to load dashboard data", error);
+    } finally {
+      setDashboardLoading(false);
+    }
+  };
+
   useEffect(() => {
     sessionStorage.setItem("db-view", view);
   }, [view]);
 
   useEffect(() => {
+    if (view === "overview") void loadDashboardData();
     if (view === "hotels" || view === "rooms" || view === "users" || view === "bookings" || view === "payments")
       void loadHotels();
     if (view === "hotels" || view === "rooms") void loadRooms();
@@ -1170,6 +1199,12 @@ const OwnerDashboard: React.FC = () => {
               >
                 <BadgeCheck size={16} /> Gói dịch vụ
               </button>
+              <button
+                onClick={() => setView("support")}
+                className={`db-nav-btn ${view === "support" ? "active" : ""}`}
+              >
+                <Mail size={16} /> Hỗ trợ
+              </button>
             </>
           ) : null}
         </nav>
@@ -1329,10 +1364,46 @@ const OwnerDashboard: React.FC = () => {
         {/* Page body */}
         <div className="db-body">
           {/* ══ OVERVIEW ══ */}
-          {view === "overview" ? (
+          {view === "overview" ? (() => {
+            const overviewStats = dashboardSummary ? [
+              {
+                label: "Công suất phòng",
+                value: dashboardSummary.roomOccupancyRate,
+                trend: "+0%",
+                icon: BedDouble,
+                color: "#1686cb",
+                accent: "blue",
+              },
+              {
+                label: "Tổng khách tháng này",
+                value: dashboardSummary.totalGuestsThisMonth.toString(),
+                trend: "+0%",
+                icon: Users,
+                color: "#8b5cf6",
+                accent: "purple",
+              },
+              {
+                label: "Doanh thu hôm nay",
+                value: dashboardSummary.todayRevenue,
+                trend: "+0%",
+                icon: TrendingUp,
+                color: "#10b981",
+                accent: "green",
+              },
+              {
+                label: "Yêu cầu hỗ trợ",
+                value: dashboardSummary.supportRequestsCount.toString().padStart(2, '0'),
+                trend: "+0",
+                icon: Bell,
+                color: "#f59e0b",
+                accent: "amber",
+              },
+            ] : stats;
+
+            return (
             <div>
               <div className="row g-3 mb-4">
-                {stats.map((s, i) => (
+                {overviewStats.map((s, i) => (
                   <div key={i} className="col-6 col-md-3">
                     <div className={`stat-card ${s.accent}`}>
                       <div
@@ -1440,6 +1511,14 @@ const OwnerDashboard: React.FC = () => {
                           Lọc
                         </button>
                         <button
+                          onClick={async () => {
+                            try {
+                              await exportGuestsExcel();
+                              notify("exportSuccess", "success");
+                            } catch (e) {
+                              notify("exportError", "error");
+                            }
+                          }}
                           style={{
                             height: "30px",
                             padding: "0 .65rem",
@@ -1472,7 +1551,7 @@ const OwnerDashboard: React.FC = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          {guests.map((g) => (
+                          {currentGuests.map((g) => (
                             <tr key={g.id}>
                               <td>
                                 <div
@@ -1531,9 +1610,9 @@ const OwnerDashboard: React.FC = () => {
                               </td>
                               <td>
                                 <span
-                                  className={`db-badge ${g.status === "Active" ? "db-badge-active" : "db-badge-done"}`}
+                                  className={`db-badge ${g.status === "CheckedIn" ? "db-badge-active" : "db-badge-done"}`}
                                 >
-                                  {g.status === "Active" ? "Đang ở" : "Đã rời"}
+                                  {g.status === "CheckedIn" ? "Đang ở" : "Đã rời"}
                                 </span>
                               </td>
                               <td style={{ textAlign: "right" }}>
@@ -1607,7 +1686,7 @@ const OwnerDashboard: React.FC = () => {
                       <ResponsiveContainer width="100%" height={170}>
                         <PieChart>
                           <Pie
-                            data={roomStatusData}
+                            data={dashboardSummary?.roomStatusChart || roomStatusData}
                             innerRadius={52}
                             outerRadius={72}
                             paddingAngle={4}
@@ -1615,7 +1694,7 @@ const OwnerDashboard: React.FC = () => {
                             stroke="none"
                             cornerRadius={5}
                           >
-                            {roomStatusData.map((e, i) => (
+                            {(dashboardSummary?.roomStatusChart || roomStatusData).map((e, i) => (
                               <Cell key={i} fill={e.color} />
                             ))}
                           </Pie>
@@ -1680,7 +1759,7 @@ const OwnerDashboard: React.FC = () => {
                 </div>
               </div>
             </div>
-          ) : /* ══ HOTELS ══ */
+          );})() : /* ══ HOTELS ══ */
           view === "hotels" ? (
             <div className="db-card">
               <div
