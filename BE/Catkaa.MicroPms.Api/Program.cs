@@ -147,10 +147,10 @@ await using (var scope = app.Services.CreateAsyncScope())
     {
         await db.Database.EnsureCreatedAsync();
     }
-    else
-    {
-        await db.Database.MigrateAsync();
-    }
+    // else
+    // {
+    //     await db.Database.MigrateAsync();
+    // }
 }
 
 app.Run();
