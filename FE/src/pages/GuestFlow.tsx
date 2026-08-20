@@ -618,7 +618,9 @@ const StepPayment = ({
           if (res.ok) {
             const result = await res.json();
             const booking = result.data;
-            if (booking && (booking.status === "CheckIn" || booking.status === "Success")) {
+            console.log("Polling result:", booking);
+            
+            if (booking && (booking.paymentStatus?.toLowerCase() === "success" || booking.status?.toLowerCase() === "checkin")) {
               clearInterval(intervalId);
               setPendingValidation(false);
               setPaymentConfirmed(true);

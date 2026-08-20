@@ -208,6 +208,11 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
             var b = await _context.Bookings.Include(x => x.Hotel).Include(x => x.Room).FirstOrDefaultAsync(x => x.Id == id);
             if (b == null) return ServiceResult<BookingResponseDto>.Fail("Booking not found");
 
+            var payment = await _context.Payments
+                .Where(p => p.BookingId == id)
+                .OrderByDescending(p => p.PaymentDate)
+                .FirstOrDefaultAsync();
+
             var dto = new BookingResponseDto
             {
                 Id = b.Id,
@@ -222,7 +227,8 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
                 RoomPassword = b.Room?.RoomPassword,
                 CheckInDate = b.CheckInDate,
                 CheckOutDate = b.CheckOutDate,
-                Status = b.Status
+                Status = b.Status,
+                PaymentStatus = payment?.Status
             };
 
             return ServiceResult<BookingResponseDto>.Ok("Success", dto);
