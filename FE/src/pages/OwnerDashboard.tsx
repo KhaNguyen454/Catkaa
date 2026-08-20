@@ -3271,9 +3271,8 @@ const OwnerDashboard: React.FC = () => {
                     color: "#fff",
                   }}
                 >
-                  {selectedHotelForRooms
-                    ? selectedHotelForRooms.name
-                    : "Chọn khách sạn để thêm phòng"}
+                  {editingRoomId ? "Cập nhật phòng" : "Thêm phòng mới"}
+                  {selectedHotelForRooms && <span style={{ fontSize: "0.8rem", marginLeft: "10px", fontWeight: 400 }}>({selectedHotelForRooms.name})</span>}
                 </div>
               </div>
               <button
@@ -3521,7 +3520,7 @@ const OwnerDashboard: React.FC = () => {
                                 {room.status === "Available" ? "Còn trống" : room.status === "Cleaning" ? "Đang dọn dẹp" : "Đã có khách"}
                               </span>
                               {room.status === "Occupied" && room.roomPassword && (
-                                <div style={{ fontSize: "11px", marginTop: "4px", fontWeight: 600, color: "#16a34a" }}>
+                                <div style={{ color: "#2563eb", fontWeight: 700, marginTop: "4px", fontSize: "11px" }}>
                                   Passcode: {room.roomPassword}
                                 </div>
                               )}
