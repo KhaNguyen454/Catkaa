@@ -309,15 +309,15 @@ const Services: React.FC = () => {
                       
                       <div className="bg-light p-3 rounded-3 mb-4">
                         <img 
-                          src={`https://img.vietqr.io/image/MB-0123456789-compact.png?amount=${selectedPackageForPayment.price.replace(/\D/g, '')}&addInfo=Mua Goi ${selectedPackageForPayment.name}`}
+                          src={`https://img.vietqr.io/image/techcombank-19038928685010-compact.png?amount=${selectedPackageForPayment.price.replace(/\D/g, '')}&addInfo=Mua Goi ${selectedPackageForPayment.name}&accountName=LUONG%20GIA%20CUONG`}
                           alt="QR Thanh Toán"
                           className="img-fluid rounded border shadow-sm mb-3"
                           style={{ maxWidth: "250px" }}
                         />
                         <div className="text-start small text-muted">
-                          <p className="mb-1"><strong>Ngân hàng:</strong> MBBank</p>
-                          <p className="mb-1"><strong>Số tài khoản:</strong> 0123456789</p>
-                          <p className="mb-1"><strong>Chủ tài khoản:</strong> CATKAA SYSTEM</p>
+                          <p className="mb-1"><strong>Ngân hàng:</strong> Techcombank</p>
+                          <p className="mb-1"><strong>Số tài khoản:</strong> 19038928685010</p>
+                          <p className="mb-1"><strong>Chủ tài khoản:</strong> LUONG GIA CUONG</p>
                           <p className="mb-0"><strong>Nội dung:</strong> Mua Goi {selectedPackageForPayment.name}</p>
                         </div>
                       </div>

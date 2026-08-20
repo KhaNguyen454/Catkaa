@@ -684,15 +684,15 @@ const StepPayment = ({
             </p>
             <div className="bg-white p-2 rounded-3 mb-2 shadow-sm d-inline-block">
               <img 
-                src={`https://img.vietqr.io/image/MB-0123456789-compact.png?amount=${(data as any)?.totalPrice ?? ''}&addInfo=Thanh toan booking ${data?.bookingCode ?? ''}`}
+                src={`https://img.vietqr.io/image/techcombank-19038928685010-compact.png?amount=${(data as any)?.totalPrice ?? ''}&addInfo=Thanh toan booking ${data?.bookingCode ?? ''}&accountName=LUONG%20GIA%20CUONG`}
                 alt="QR Thanh Toán"
                 className="img-fluid rounded border"
                 style={{ maxWidth: "150px" }}
               />
             </div>
             <div className="text-start small text-muted mx-auto" style={{ maxWidth: "200px", fontSize: "10px" }}>
-              <p className="mb-1"><strong>NH:</strong> MBBank - 0123456789</p>
-              <p className="mb-1"><strong>Tên:</strong> CATKAA SYSTEM</p>
+              <p className="mb-1"><strong>NH:</strong> Techcombank - 19038928685010</p>
+              <p className="mb-1"><strong>Tên:</strong> LUONG GIA CUONG</p>
               <p className="mb-0"><strong>ND:</strong> Thanh toan booking {data?.bookingCode}</p>
             </div>
           </motion.div>
