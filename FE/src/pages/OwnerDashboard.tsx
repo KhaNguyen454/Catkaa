@@ -1787,6 +1787,7 @@ const OwnerDashboard: React.FC = () => {
                       </div>
                     </div>
                     <div style={{ padding: "1.1rem 1.25rem" }}>
+                      {console.log("PieChart Data:", dashboardSummary?.roomStatusChart || roomStatusData)}
                       <ResponsiveContainer width="100%" height={170}>
                         <PieChart>
                           <Pie

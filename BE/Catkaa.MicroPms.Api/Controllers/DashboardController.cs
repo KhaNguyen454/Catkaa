@@ -1,4 +1,4 @@
-﻿using Catkaa.MicroPms.Api.Data;
+using Catkaa.MicroPms.Api.Data;
 using Catkaa.MicroPms.Api.DTOs;
 using Catkaa.MicroPms.Api.Helpers;
 using ClosedXML.Excel;
@@ -32,19 +32,19 @@ namespace Catkaa.MicroPms.Api.Controllers
 
             if (CurrentUserRole == "Admin")
             {
-                // LÆ°u Ã½: TÃ­nh toÃ¡n tuáº§n tá»± vÃ¬ EF Core DbContext khÃ´ng cho phÃ©p gá»i nhiá»u thao tÃ¡c async song song (Task.WhenAll)
+                // Lưu ý: Tính toán tuần tự vì EF Core DbContext không cho phép gọi nhiều thao tác async song song (Task.WhenAll)
                 var totalUsers = await _context.Users.CountAsync();
                 
                 var totalHotels = await _context.Hotels.CountAsync();
                 
                 var totalSupportRequests = await _context.ContactRequests.CountAsync();
 
-                // 1. Doanh thu tá»« báº£ng Payments (GÃ³i dá»‹ch vá»¥ hoáº·c thanh toÃ¡n online)
+                // 1. Doanh thu từ bảng Payments (Gói dịch vụ hoặc thanh toán online)
                 var paymentRevenue = await _context.Payments
-                    .Where(p => p.Status == "Completed" || p.Status == "ThÃ nh cÃ´ng")
+                    .Where(p => p.Status == "Completed" || p.Status == "Thành công")
                     .SumAsync(p => p.Amount);
 
-                // 2. Doanh thu tá»« báº£ng Bookings (VÃ¬ CSDL khÃ´ng lÆ°u cá»™t TotalPrice, cáº§n tá»± tÃ­nh toÃ¡n: Sá»‘ Ä‘Ãªm * GiÃ¡ phÃ²ng)
+                // 2. Doanh thu từ bảng Bookings (Vì CSDL không lưu cột TotalPrice, cần tự tính toán: Số đêm * Giá phòng)
                 var completedBookings = await _context.Bookings
                     .Include(b => b.Room)
                     .Where(b => b.Status == "CheckOut" || b.Status == "Completed")
@@ -58,31 +58,32 @@ namespace Catkaa.MicroPms.Api.Controllers
                     return nights * b.Price;
                 });
 
-                // Gom 2 nguá»“n doanh thu láº¡i thÃ nh 1
+                // Gom 2 nguồn doanh thu lại thành 1
                 var totalSystemRevenue = paymentRevenue + bookingRevenue;
 
-                // 3. Biá»ƒu Ä‘á»“ thá»‘ng kÃª loáº¡i tÃ i khoáº£n (Admin Pie Chart)
-                var normalUsersCount = await _context.Users.CountAsync(u => u.Role == "User" || u.Role == "Customer" || string.IsNullOrEmpty(u.Role));
+                // 3. Biểu đồ thống kê loại tài khoản (Admin Pie Chart)
                 var hostsCount = await _context.Users.CountAsync(u => u.Role == "Host");
+                // Gom tất cả các role còn lại (Guest, User, Customer, Admin) vào chung một nhãn để tổng cộng bằng đúng TotalUsers
+                var normalUsersCount = totalUsers - hostsCount;
 
                 var adminChartData = new System.Collections.Generic.List<RoomStatusChartDto>
                 {
-                    new RoomStatusChartDto { Name = "NgÆ°á»i dÃ¹ng thÆ°á»ng", Value = normalUsersCount, Color = "#1686cb" },
-                    new RoomStatusChartDto { Name = "Chá»§ khÃ¡ch sáº¡n", Value = hostsCount, Color = "#10b981" }
+                    new RoomStatusChartDto { Label = "Người dùng thường", Value = normalUsersCount, Color = "#1686cb" },
+                    new RoomStatusChartDto { Label = "Chủ khách sạn", Value = hostsCount, Color = "#10b981" }
                 };
 
                 var adminSummary = new DashboardSummaryDto
                 {
                     TotalUsers = totalUsers,
                     TotalHotels = totalHotels,
-                    TotalSystemRevenue = $"{totalSystemRevenue:N0} â‚«",
+                    TotalSystemRevenue = $"{totalSystemRevenue:N0} ₫",
                     TotalSupportRequests = totalSupportRequests,
                     RoomStatusChart = adminChartData
                 };
                 return Ok(ServiceResult<DashboardSummaryDto>.Ok("Success", adminSummary));
             }
 
-            // Láº¥y danh sÃ¡ch HotelId cá»§a Host hiá»‡n táº¡i
+            // Lấy danh sách HotelId của Host hiện tại
             var hostHotels = await _context.Hotels
                 .Where(h => h.HostId == CurrentUserId)
                 .Select(h => h.Id)
@@ -98,7 +99,7 @@ namespace Catkaa.MicroPms.Api.Controllers
                 .Where(b => hostHotels.Contains(b.HotelId) && b.CheckInDate >= startOfMonth)
                 .CountAsync();
 
-            // KPI: Today revenue (tá»« Bookings Checkout hÃ´m nay cá»§a cÃ¡c KS thuá»™c Host)
+            // KPI: Today revenue (từ Bookings Checkout hôm nay của các KS thuộc Host)
             var completedTodayBookings = await _context.Bookings
                 .Include(b => b.Room)
                 .Where(b => hostHotels.Contains(b.HotelId) && b.CheckOutDate.Date == today && (b.Status == "CheckOut" || b.Status == "Completed"))
@@ -112,10 +113,10 @@ namespace Catkaa.MicroPms.Api.Controllers
                 return nights * b.Price;
             });
 
-            // KPI: Support requests count (chá»‰ láº¥y request cá»§a User nÃ y? Hoáº·c Host khÃ´ng cÃ³ support, láº¥y 0. Hoáº·c láº¥y tá»« ContactRequests cá»§a Host? Giá»¯ nguyÃªn láº¥y all náº¿u chÆ°a cÃ³ UserId trong ContactRequest)
-            var unresolvedSupportRequests = await _context.ContactRequests.CountAsync(c => !c.IsResolved); // Máº·c Ä‘á»‹nh
+            // KPI: Support requests count (chỉ lấy request của User này? Hoặc Host không có support, lấy 0. Hoặc lấy từ ContactRequests của Host? Giữ nguyên lấy all nếu chưa có UserId trong ContactRequest)
+            var unresolvedSupportRequests = await _context.ContactRequests.CountAsync(c => !c.IsResolved); // Mặc định
 
-            // BIá»‚U Äá»’: Room status chart (Host Pie Chart)
+            // BIỂU ĐỒ: Room status chart (Host Pie Chart)
             var roomStatuses = await _context.Rooms
                 .Where(r => hostHotels.Contains(r.HotelId))
                 .GroupBy(r => r.Status)
@@ -124,16 +125,16 @@ namespace Catkaa.MicroPms.Api.Controllers
 
             var chartData = new System.Collections.Generic.List<RoomStatusChartDto>
             {
-                new RoomStatusChartDto { Name = "Äang cÃ³ khÃ¡ch", Value = roomStatuses.FirstOrDefault(r => r.Status == "Occupied")?.Count ?? 0, Color = "#1686cb" },
-                new RoomStatusChartDto { Name = "PhÃ²ng trá»‘ng", Value = roomStatuses.FirstOrDefault(r => r.Status == "Available")?.Count ?? 0, Color = "#10b981" },
-                new RoomStatusChartDto { Name = "Äang dá»n", Value = roomStatuses.FirstOrDefault(r => r.Status == "Cleaning" || r.Status == "Maintenance")?.Count ?? 0, Color = "#f59e0b" }
+                new RoomStatusChartDto { Label = "Đang có khách", Value = roomStatuses.FirstOrDefault(r => r.Status == "Occupied")?.Count ?? 0, Color = "#1686cb" },
+                new RoomStatusChartDto { Label = "Phòng trống", Value = roomStatuses.FirstOrDefault(r => r.Status == "Available")?.Count ?? 0, Color = "#10b981" },
+                new RoomStatusChartDto { Label = "Đang dọn", Value = roomStatuses.FirstOrDefault(r => r.Status == "Cleaning" || r.Status == "Maintenance")?.Count ?? 0, Color = "#f59e0b" }
             };
 
             var summary = new DashboardSummaryDto
             {
                 RoomOccupancyRate = $"{occupancyRate:F1}%",
                 TotalGuestsThisMonth = guestsThisMonth,
-                TodayRevenue = $"{todayRevenue:N0} â‚«",
+                TodayRevenue = $"{todayRevenue:N0} ₫",
                 SupportRequestsCount = unresolvedSupportRequests,
                 RoomStatusChart = chartData
             };
@@ -192,16 +193,16 @@ namespace Catkaa.MicroPms.Api.Controllers
                 .ToListAsync();
 
             using var workbook = new XLWorkbook();
-            var worksheet = workbook.Worksheets.Add("KhÃ¡ch Äang LÆ°u TrÃº");
+            var worksheet = workbook.Worksheets.Add("Khách Đang Lưu Trú");
             var currentRow = 1;
 
-            worksheet.Cell(currentRow, 1).Value = "MÃ£ Äáº·t PhÃ²ng";
-            worksheet.Cell(currentRow, 2).Value = "TÃªn KhÃ¡ch";
-            worksheet.Cell(currentRow, 3).Value = "SÄT KhÃ¡ch";
-            worksheet.Cell(currentRow, 4).Value = "PhÃ²ng";
-            worksheet.Cell(currentRow, 5).Value = "Loáº¡i PhÃ²ng";
-            worksheet.Cell(currentRow, 6).Value = "NgÃ y Nháº­n";
-            worksheet.Cell(currentRow, 7).Value = "NgÃ y Tráº£";
+            worksheet.Cell(currentRow, 1).Value = "Mã Đặt Phòng";
+            worksheet.Cell(currentRow, 2).Value = "Tên Khách";
+            worksheet.Cell(currentRow, 3).Value = "SĐT Khách";
+            worksheet.Cell(currentRow, 4).Value = "Phòng";
+            worksheet.Cell(currentRow, 5).Value = "Loại Phòng";
+            worksheet.Cell(currentRow, 6).Value = "Ngày Nhận";
+            worksheet.Cell(currentRow, 7).Value = "Ngày Trả";
 
             // Header style
             worksheet.Range("A1:G1").Style.Font.Bold = true;
