@@ -11,6 +11,7 @@ import CheckInService, { OcrCheckInResult, OcrCheckInResponse } from "../service
 import { getHotels, Hotel } from "../services/hotelService";
 import { getRoomById, RoomRecord } from "../services/roomService";
 import PaymentService from "../services/paymentService";
+import { API_BASE_URL } from "../config/apiConfig";
 
 /* ─────────────────────────────────────────────────
    BƯỚC 0 — Chào mừng & chọn khách sạn
@@ -605,6 +606,34 @@ const StepPayment = ({
       setLoadingQr(false);
     }
   };
+
+  useEffect(() => {
+    let intervalId: any;
+
+    if (pendingValidation && data?.bookingId) {
+      intervalId = setInterval(async () => {
+        try {
+          // Check booking status directly from API
+          const res = await fetch(`${API_BASE_URL}/api/bookings/${data.bookingId}`);
+          if (res.ok) {
+            const result = await res.json();
+            const booking = result.data;
+            if (booking && (booking.status === "CheckIn" || booking.status === "Success")) {
+              clearInterval(intervalId);
+              setPendingValidation(false);
+              setPaymentConfirmed(true);
+            }
+          }
+        } catch (error) {
+          console.error("Polling error:", error);
+        }
+      }, 3000);
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [pendingValidation, data?.bookingId]);
 
   return (
     <div className="phone-screen-content d-flex flex-column h-100">

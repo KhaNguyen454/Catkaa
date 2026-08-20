@@ -120,6 +120,19 @@ class BookingService {
   }
 
   /**
+   * Get a specific booking by ID
+   */
+  static async getBookingById(id: number): Promise<BookingResponse> {
+    const response = await fetch(`${API_BASE_URL}/api/bookings/${id}`);
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.message || 'Failed to fetch booking');
+    }
+    const result = await response.json();
+    return result.data || result;
+  }
+
+  /**
    * Update a booking
    */
   static async updateBooking(

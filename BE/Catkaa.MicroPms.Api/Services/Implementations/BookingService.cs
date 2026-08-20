@@ -203,6 +203,31 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
             return ServiceResult<List<BookingResponseDto>>.Ok("Success", bookings);
         }
 
+        public async Task<ServiceResult<BookingResponseDto>> GetBookingByIdAsync(int id)
+        {
+            var b = await _context.Bookings.Include(x => x.Hotel).Include(x => x.Room).FirstOrDefaultAsync(x => x.Id == id);
+            if (b == null) return ServiceResult<BookingResponseDto>.Fail("Booking not found");
+
+            var dto = new BookingResponseDto
+            {
+                Id = b.Id,
+                BookingCode = b.BookingCode,
+                GuestName = b.GuestName ?? string.Empty,
+                GuestCccd = b.GuestCccd ?? string.Empty,
+                HotelId = b.HotelId,
+                HotelName = b.Hotel?.Name,
+                RoomId = b.RoomId,
+                RoomNumber = b.Room?.RoomNumber,
+                RoomType = b.Room?.RoomType,
+                RoomPassword = b.Room?.RoomPassword,
+                CheckInDate = b.CheckInDate,
+                CheckOutDate = b.CheckOutDate,
+                Status = b.Status
+            };
+
+            return ServiceResult<BookingResponseDto>.Ok("Success", dto);
+        }
+
         public async Task<ServiceResult<object>> UpdateBookingAsync(int id, BookingUpdateDto request, string role, int? currentUserId)
         {
             var booking = await _context.Bookings.Include(b => b.Hotel).FirstOrDefaultAsync(b => b.Id == id);

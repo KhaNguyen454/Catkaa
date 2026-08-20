@@ -33,6 +33,22 @@ namespace Catkaa.MicroPms.Api.Controllers
             }
         }
 
+        [HttpGet("{id}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetById(int id)
+        {
+            try
+            {
+                var result = await _bookingService.GetBookingByIdAsync(id);
+                if (!result.Success) return NotFound(new { message = result.Message });
+                return Ok(new { message = "Success", data = result.Data });
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { message = "Internal server error", details = ex.Message });
+            }
+        }
+
         [HttpGet("active-rooms")]
         public async Task<IActionResult> GetActiveRoomsByCccd([FromQuery] string cccd)
         {
