@@ -29,6 +29,7 @@ import {
   CreditCard,
   BadgeCheck,
   BadgeX,
+  Check,
 } from "lucide-react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import {
@@ -833,6 +834,7 @@ const OwnerDashboard: React.FC = () => {
       Success: { label: "Thành công", cls: "db-badge-host" },
       Failed:  { label: "Thất bại",   cls: "db-badge-cancel" },
       Pending: { label: "Chờ xử lý",  cls: "db-badge-done" },
+      PendingValidation: { label: "Chờ xác nhận", cls: "text-warning bg-warning bg-opacity-10 border border-warning" },
     };
     return map[status] ?? { label: status, cls: "db-badge-done" };
   };
@@ -2841,9 +2843,23 @@ const OwnerDashboard: React.FC = () => {
                               </span>
                             </td>
                             <td>
-                              <button className="db-ibtn db-ibtn-view" type="button" onClick={() => setViewPayment(p)} title="Xem chi tiết">
-                                <Eye size={13} />
-                              </button>
+                              <div style={{ display: "flex", justifyContent: "flex-end", gap: "6px" }}>
+                                {p.status === "PendingValidation" && (
+                                  <button
+                                    className="db-ibtn db-ibtn-edit"
+                                    type="button"
+                                    onClick={() => void handleConfirmPayment(p.id)}
+                                    title="Duyệt thanh toán"
+                                    disabled={confirmingPayment}
+                                    style={{ color: "#16a34a", background: "#f0fdf4", borderColor: "#bbf7d0" }}
+                                  >
+                                    <Check size={13} />
+                                  </button>
+                                )}
+                                <button className="db-ibtn db-ibtn-view" type="button" onClick={() => setViewPayment(p)} title="Xem chi tiết">
+                                  <Eye size={13} />
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         );
@@ -2926,16 +2942,6 @@ const OwnerDashboard: React.FC = () => {
                       ))}
                     </div>
                     <div className="db-modal-foot">
-                      {viewPayment.status === "PendingValidation" && (
-                        <button 
-                          className="db-btn-primary" 
-                          style={{ marginRight: "auto" }}
-                          onClick={() => void handleConfirmPayment(viewPayment.id)}
-                          disabled={confirmingPayment}
-                        >
-                          {confirmingPayment ? "Đang xử lý..." : "Xác nhận đã nhận tiền"}
-                        </button>
-                      )}
                       <button className="db-btn-ghost" onClick={() => setViewPayment(null)}>Đóng</button>
                     </div>
                   </div>
