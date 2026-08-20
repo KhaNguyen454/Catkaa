@@ -1783,7 +1783,7 @@ const OwnerDashboard: React.FC = () => {
                           marginTop: "2px",
                         }}
                       >
-                        Thống kê hôm nay
+                        {isAdmin ? "Thống kê tài khoản" : "Tình trạng phòng"}
                       </div>
                     </div>
                     <div style={{ padding: "1.1rem 1.25rem" }}>
@@ -1813,7 +1813,7 @@ const OwnerDashboard: React.FC = () => {
                         </PieChart>
                       </ResponsiveContainer>
                       <div style={{ marginTop: ".5rem" }}>
-                        {roomStatusData.map((d, i) => (
+                        {(dashboardSummary?.roomStatusChart || roomStatusData).map((d, i) => (
                           <div
                             key={i}
                             style={{
@@ -1853,7 +1853,7 @@ const OwnerDashboard: React.FC = () => {
                                 color: "#0f172a",
                               }}
                             >
-                              {d.value} phòng
+                              {d.value}
                             </span>
                           </div>
                         ))}

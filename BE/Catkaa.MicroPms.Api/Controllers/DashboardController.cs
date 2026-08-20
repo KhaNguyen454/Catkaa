@@ -61,37 +61,63 @@ namespace Catkaa.MicroPms.Api.Controllers
                 // Gom 2 nguồn doanh thu lại thành 1
                 var totalSystemRevenue = paymentRevenue + bookingRevenue;
 
+                // 3. Biểu đồ thống kê loại tài khoản (Admin Pie Chart)
+                var normalUsersCount = await _context.Users.CountAsync(u => u.Role == "User" || u.Role == "Customer" || string.IsNullOrEmpty(u.Role));
+                var hostsCount = await _context.Users.CountAsync(u => u.Role == "Host");
+
+                var adminChartData = new System.Collections.Generic.List<RoomStatusChartDto>
+                {
+                    new RoomStatusChartDto { Name = "Người dùng thường", Value = normalUsersCount, Color = "#1686cb" },
+                    new RoomStatusChartDto { Name = "Chủ khách sạn", Value = hostsCount, Color = "#10b981" }
+                };
+
                 var adminSummary = new DashboardSummaryDto
                 {
                     TotalUsers = totalUsers,
                     TotalHotels = totalHotels,
                     TotalSystemRevenue = $"{totalSystemRevenue:N0} ₫",
-                    TotalSupportRequests = totalSupportRequests
+                    TotalSupportRequests = totalSupportRequests,
+                    RoomStatusChart = adminChartData
                 };
                 return Ok(ServiceResult<DashboardSummaryDto>.Ok("Success", adminSummary));
             }
 
-            // Room occupancy
-            var totalRooms = await _context.Rooms.CountAsync();
-            var occupiedRooms = await _context.Rooms.CountAsync(r => r.Status == "Occupied");
+            // Lấy danh sách HotelId của Host hiện tại
+            var hostHotels = await _context.Hotels
+                .Where(h => h.HostId == CurrentUserId)
+                .Select(h => h.Id)
+                .ToListAsync();
+
+            // KPI: Room occupancy
+            var totalRooms = await _context.Rooms.Where(r => hostHotels.Contains(r.HotelId)).CountAsync();
+            var occupiedRooms = await _context.Rooms.Where(r => hostHotels.Contains(r.HotelId) && r.Status == "Occupied").CountAsync();
             var occupancyRate = totalRooms > 0 ? (occupiedRooms * 100.0 / totalRooms) : 0;
             
-            // Guests this month
+            // KPI: Guests this month
             var guestsThisMonth = await _context.Bookings
-                .Where(b => b.CheckInDate >= startOfMonth)
+                .Where(b => hostHotels.Contains(b.HotelId) && b.CheckInDate >= startOfMonth)
                 .CountAsync();
 
-            // Today revenue
-            var todayRevenue = await _context.Payments
-                .Where(p => p.PaymentDate.Date == today && p.Status == "Completed")
-                .SumAsync(p => p.Amount);
+            // KPI: Today revenue (từ Bookings Checkout hôm nay của các KS thuộc Host)
+            var completedTodayBookings = await _context.Bookings
+                .Include(b => b.Room)
+                .Where(b => hostHotels.Contains(b.HotelId) && b.CheckOutDate.Date == today && (b.Status == "CheckOut" || b.Status == "Completed"))
+                .Select(b => new { b.CheckInDate, b.CheckOutDate, Price = b.Room != null ? b.Room.Price : 0 })
+                .ToListAsync();
 
-            // Support requests count (unresolved)
-            var unresolvedSupportRequests = await _context.ContactRequests
-                .CountAsync(c => !c.IsResolved);
+            var todayRevenue = completedTodayBookings.Sum(b => 
+            {
+                var nights = (b.CheckOutDate.Date - b.CheckInDate.Date).Days;
+                if (nights <= 0) nights = 1;
+                return nights * b.Price;
+            });
 
-            // Room status chart
+            // KPI: Support requests count (chỉ lấy request của User này? Hoặc Host không có support, lấy 0. Hoặc lấy từ ContactRequests của Host? Giữ nguyên lấy all nếu chưa có UserId trong ContactRequest)
+            var unresolvedSupportRequests = await _context.ContactRequests.CountAsync(c => !c.IsResolved); // Mặc định
+
+            // BIỂU ĐỒ: Room status chart (Host Pie Chart)
             var roomStatuses = await _context.Rooms
+                .Where(r => hostHotels.Contains(r.HotelId))
                 .GroupBy(r => r.Status)
                 .Select(g => new { Status = g.Key, Count = g.Count() })
                 .ToListAsync();
@@ -100,7 +126,7 @@ namespace Catkaa.MicroPms.Api.Controllers
             {
                 new RoomStatusChartDto { Name = "Đang có khách", Value = roomStatuses.FirstOrDefault(r => r.Status == "Occupied")?.Count ?? 0, Color = "#1686cb" },
                 new RoomStatusChartDto { Name = "Phòng trống", Value = roomStatuses.FirstOrDefault(r => r.Status == "Available")?.Count ?? 0, Color = "#10b981" },
-                new RoomStatusChartDto { Name = "Đang dọn", Value = roomStatuses.FirstOrDefault(r => r.Status == "Cleaning")?.Count ?? 0, Color = "#f59e0b" }
+                new RoomStatusChartDto { Name = "Đang dọn", Value = roomStatuses.FirstOrDefault(r => r.Status == "Cleaning" || r.Status == "Maintenance")?.Count ?? 0, Color = "#f59e0b" }
             };
 
             var summary = new DashboardSummaryDto
