@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -53,6 +53,10 @@ namespace Catkaa.MicroPms.Api.Migrations
                 oldMaxLength: 100,
                 oldNullable: true);
 
+            migrationBuilder.DropForeignKey(
+                name: "FK_Bookings_Users_UserId",
+                table: "Bookings");
+
             migrationBuilder.AlterColumn<int>(
                 name: "Id",
                 table: "Users",
@@ -61,6 +65,13 @@ namespace Catkaa.MicroPms.Api.Migrations
                 oldClrType: typeof(int),
                 oldType: "int")
                 .Annotation("SqlServer:Identity", "1, 1");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Bookings_Users_UserId",
+                table: "Bookings",
+                column: "UserId",
+                principalTable: "Users",
+                principalColumn: "Id");
 
             migrationBuilder.AlterColumn<string>(
                 name: "Status",
@@ -609,6 +620,10 @@ namespace Catkaa.MicroPms.Api.Migrations
                 oldMaxLength: 100,
                 oldNullable: true);
 
+            migrationBuilder.DropForeignKey(
+                name: "FK_Bookings_Users_UserId",
+                table: "Bookings");
+
             migrationBuilder.AlterColumn<int>(
                 name: "Id",
                 table: "Users",
@@ -617,6 +632,13 @@ namespace Catkaa.MicroPms.Api.Migrations
                 oldClrType: typeof(int),
                 oldType: "int")
                 .OldAnnotation("SqlServer:Identity", "1, 1");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Bookings_Users_UserId",
+                table: "Bookings",
+                column: "UserId",
+                principalTable: "Users",
+                principalColumn: "Id");
 
             migrationBuilder.AlterColumn<string>(
                 name: "Status",
