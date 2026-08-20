@@ -45,7 +45,8 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
                 Status = r.Status,
                 Description = r.Description,
                 MainImageUrl = r.MainImageUrl,
-                ImageGallery = r.ImageGallery != null ? JsonSerializer.Deserialize<List<string>>(r.ImageGallery) : new List<string>()
+                ImageGallery = r.ImageGallery != null ? JsonSerializer.Deserialize<List<string>>(r.ImageGallery) : new List<string>(),
+                RoomPassword = r.RoomPassword
             }).ToList();
 
             return ServiceResult<List<RoomResponseDto>>.Ok("Success", response);
@@ -69,7 +70,8 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
                 Status = r.Status,
                 Description = r.Description,
                 MainImageUrl = r.MainImageUrl,
-                ImageGallery = r.ImageGallery != null ? JsonSerializer.Deserialize<List<string>>(r.ImageGallery) : new List<string>()
+                ImageGallery = r.ImageGallery != null ? JsonSerializer.Deserialize<List<string>>(r.ImageGallery) : new List<string>(),
+                RoomPassword = r.RoomPassword
             });
         }
 

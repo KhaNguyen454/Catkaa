@@ -11,6 +11,7 @@ export type RoomRecord = {
   description?: string | null;
   mainImageUrl?: string | null;
   imageGallery?: string[] | null;
+  roomPassword?: string;
 };
 
 export type RoomPayload = {

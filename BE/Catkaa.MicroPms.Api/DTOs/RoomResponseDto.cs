@@ -13,5 +13,6 @@ namespace Catkaa.MicroPms.Api.DTOs
         public string? Description { get; set; }
         public string? MainImageUrl { get; set; }
         public List<string>? ImageGallery { get; set; }
+        public string? RoomPassword { get; set; }
     }
 }

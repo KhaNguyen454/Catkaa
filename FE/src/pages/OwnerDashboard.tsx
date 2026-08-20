@@ -597,6 +597,7 @@ const OwnerDashboard: React.FC = () => {
       imageGallery: room.imageGallery?.join(", ") ?? "",
     });
     setRoomsError("");
+    setRoomModalOpen(true);
   };
 
   const handleRoomSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -3519,6 +3520,16 @@ const OwnerDashboard: React.FC = () => {
                               >
                                 {room.status === "Available" ? "Còn trống" : room.status === "Cleaning" ? "Đang dọn dẹp" : "Đã có khách"}
                               </span>
+                              {room.status === "Occupied" && room.roomPassword && (
+                                <div style={{ fontSize: "11px", marginTop: "4px", fontWeight: 600, color: "#16a34a" }}>
+                                  Passcode: {room.roomPassword}
+                                </div>
+                              )}
+                              {room.status !== "Occupied" && (
+                                <div style={{ fontSize: "11px", marginTop: "4px", color: "#94a3b8" }}>
+                                  --
+                                </div>
+                              )}
                             </td>
                             <td>
                               <div
