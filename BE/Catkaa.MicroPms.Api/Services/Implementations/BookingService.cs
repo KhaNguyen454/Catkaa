@@ -313,5 +313,17 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
 
             return ServiceResult<object>.Ok("Checkout successful");
         }
+
+        public async Task<ServiceResult<object>> SkipPaymentAsync(int id)
+        {
+            var booking = await _context.Bookings.FirstOrDefaultAsync(b => b.Id == id);
+            if (booking == null) return ServiceResult<object>.Fail("Booking not found");
+
+            booking.Status = "CheckIn"; // Guest will pay at counter
+            _context.Bookings.Update(booking);
+            await _context.SaveChangesAsync();
+
+            return ServiceResult<object>.Ok("Booking status updated to CheckIn for pay-at-counter");
+        }
     }
 }

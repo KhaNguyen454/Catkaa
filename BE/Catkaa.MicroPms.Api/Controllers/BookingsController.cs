@@ -49,6 +49,22 @@ namespace Catkaa.MicroPms.Api.Controllers
             }
         }
 
+        [HttpPut("{id}/skip-payment")]
+        [AllowAnonymous]
+        public async Task<IActionResult> SkipPayment(int id)
+        {
+            try
+            {
+                var result = await _bookingService.SkipPaymentAsync(id);
+                if (!result.Success) return BadRequest(new { message = result.Message });
+                return Ok(new { message = result.Message });
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { message = "Internal server error", details = ex.Message });
+            }
+        }
+
         [HttpGet("active-rooms")]
         public async Task<IActionResult> GetActiveRoomsByCccd([FromQuery] string cccd)
         {

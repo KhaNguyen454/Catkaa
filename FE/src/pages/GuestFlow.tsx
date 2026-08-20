@@ -607,6 +607,26 @@ const StepPayment = ({
     }
   };
 
+  const handleSkipPayment = async () => {
+    if (!data?.bookingId) return;
+    setLoadingQr(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/bookings/${data.bookingId}/skip-payment`, {
+        method: 'PUT'
+      });
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.message || "Không thể bỏ qua thanh toán. Vui lòng thử lại.");
+      }
+      setPaymentConfirmed(true);
+    } catch (err: any) {
+      setError(err.message);
+      setTimeout(() => setError(""), 5000);
+    } finally {
+      setLoadingQr(false);
+    }
+  };
+
   useEffect(() => {
     let intervalId: any;
 
@@ -796,15 +816,15 @@ const StepPayment = ({
           </button>
         )}
         {!paymentConfirmed && !pendingValidation && (
-          <Link
-            to="/"
-            onClick={() => sessionStorage.removeItem("catka_checkin_state")}
+          <button
+            onClick={() => void handleSkipPayment()}
             className="btn w-100 rounded-pill fw-bold py-2 text-decoration-none"
-            style={{ background: "#f1f5f9", color: "#64748b", fontSize: "12px" }}
+            style={{ background: "#f1f5f9", color: "#64748b", fontSize: "12px", border: "none" }}
+            disabled={loadingQr}
           >
             <Ban size={13} className="me-1" />
-            Bỏ qua — Thanh toán tại quầy
-          </Link>
+            {loadingQr ? "Đang xử lý..." : "Bỏ qua — Thanh toán tại quầy"}
+          </button>
         )}
       </div>
     </div>
