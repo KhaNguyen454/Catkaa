@@ -2,7 +2,7 @@ import { API_BASE_URL } from "../config/apiConfig";
 import { getAuthToken } from "./authService";
 
 export interface RoomStatusChartData {
-  name: string;
+  label: string;
   value: number;
   color: string;
 }

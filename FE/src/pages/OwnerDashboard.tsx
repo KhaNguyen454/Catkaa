@@ -81,9 +81,9 @@ import { useMessage } from "../components/MessageContext";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const roomStatusData = [
-  { name: "Đang có khách", value: 8, color: "#1686cb" },
-  { name: "Phòng trống", value: 3, color: "#10b981" },
-  { name: "Đang dọn", value: 1, color: "#f59e0b" },
+  { label: "Đang có khách", value: 8, color: "#1686cb" },
+  { label: "Phòng trống", value: 3, color: "#10b981" },
+  { label: "Đang dọn", value: 1, color: "#f59e0b" },
 ];
 
 const guests = [
@@ -1774,7 +1774,7 @@ const OwnerDashboard: React.FC = () => {
                           color: "#0f172a",
                         }}
                       >
-                        Tỷ lệ phòng
+                        {isAdmin ? "Tỷ lệ người dùng" : "Tỷ lệ phòng"}
                       </div>
                       <div
                         style={{
@@ -1795,6 +1795,7 @@ const OwnerDashboard: React.FC = () => {
                             outerRadius={72}
                             paddingAngle={4}
                             dataKey="value"
+                            nameKey="label"
                             stroke="none"
                             cornerRadius={5}
                           >
@@ -1843,7 +1844,7 @@ const OwnerDashboard: React.FC = () => {
                               <span
                                 style={{ fontSize: ".76rem", color: "#64748b" }}
                               >
-                                {d.name}
+                                {d.label}
                               </span>
                             </div>
                             <span

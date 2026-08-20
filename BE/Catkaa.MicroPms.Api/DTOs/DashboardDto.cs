@@ -20,7 +20,7 @@ namespace Catkaa.MicroPms.Api.DTOs
 
     public class RoomStatusChartDto
     {
-        public string Name { get; set; } = string.Empty;
+        public string Label { get; set; } = string.Empty;
         public int Value { get; set; } = 0;
         public string Color { get; set; } = string.Empty;
     }
