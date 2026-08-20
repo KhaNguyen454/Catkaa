@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -14,7 +14,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "Username",
                 table: "Users",
-                type: "nvarchar(50)",
+                type: "varchar(50)",
                 maxLength: 50,
                 nullable: false,
                 oldClrType: typeof(string),
@@ -24,7 +24,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "Role",
                 table: "Users",
-                type: "nvarchar(20)",
+                type: "varchar(20)",
                 maxLength: 20,
                 nullable: true,
                 oldClrType: typeof(string),
@@ -35,7 +35,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "PasswordHash",
                 table: "Users",
-                type: "nvarchar(256)",
+                type: "varchar(256)",
                 maxLength: 256,
                 nullable: false,
                 oldClrType: typeof(string),
@@ -45,7 +45,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "Email",
                 table: "Users",
-                type: "nvarchar(100)",
+                type: "varchar(100)",
                 maxLength: 100,
                 nullable: true,
                 oldClrType: typeof(string),
@@ -112,7 +112,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "Status",
                 table: "Rooms",
-                type: "nvarchar(20)",
+                type: "varchar(20)",
                 maxLength: 20,
                 nullable: false,
                 oldClrType: typeof(string),
@@ -122,7 +122,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "RoomType",
                 table: "Rooms",
-                type: "nvarchar(50)",
+                type: "varchar(50)",
                 maxLength: 50,
                 nullable: false,
                 oldClrType: typeof(string),
@@ -132,7 +132,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "RoomPassword",
                 table: "Rooms",
-                type: "nvarchar(8)",
+                type: "varchar(8)",
                 maxLength: 8,
                 nullable: true,
                 oldClrType: typeof(string),
@@ -143,7 +143,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "RoomNumber",
                 table: "Rooms",
-                type: "nvarchar(20)",
+                type: "varchar(20)",
                 maxLength: 20,
                 nullable: false,
                 oldClrType: typeof(string),
@@ -153,7 +153,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "MainImageUrl",
                 table: "Rooms",
-                type: "nvarchar(500)",
+                type: "varchar(500)",
                 maxLength: 500,
                 nullable: true,
                 oldClrType: typeof(string),
@@ -164,7 +164,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<DateTime>(
                 name: "LastCleanedAt",
                 table: "Rooms",
-                type: "datetime2",
+                type: "datetime(6)",
                 nullable: true,
                 oldClrType: typeof(DateTime),
                 oldType: "datetime(6)",
@@ -173,7 +173,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "ImageGallery",
                 table: "Rooms",
-                type: "nvarchar(max)",
+                type: "longtext",
                 nullable: true,
                 oldClrType: typeof(string),
                 oldType: "longtext",
@@ -182,7 +182,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "Description",
                 table: "Rooms",
-                type: "nvarchar(2000)",
+                type: "varchar(2000)",
                 maxLength: 2000,
                 nullable: true,
                 oldClrType: typeof(string),
@@ -202,7 +202,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<DateTime>(
                 name: "CreatedAt",
                 table: "Reviews",
-                type: "datetime2",
+                type: "datetime(6)",
                 nullable: false,
                 oldClrType: typeof(DateTime),
                 oldType: "datetime(6)");
@@ -210,7 +210,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "Comment",
                 table: "Reviews",
-                type: "nvarchar(max)",
+                type: "longtext",
                 nullable: true,
                 oldClrType: typeof(string),
                 oldType: "longtext",
@@ -219,7 +219,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "BookingCode",
                 table: "Reviews",
-                type: "nvarchar(50)",
+                type: "varchar(50)",
                 maxLength: 50,
                 nullable: false,
                 oldClrType: typeof(string),
@@ -238,7 +238,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "Subtitle",
                 table: "PricingPlans",
-                type: "nvarchar(200)",
+                type: "varchar(200)",
                 maxLength: 200,
                 nullable: false,
                 oldClrType: typeof(string),
@@ -248,7 +248,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "Price",
                 table: "PricingPlans",
-                type: "nvarchar(50)",
+                type: "varchar(50)",
                 maxLength: 50,
                 nullable: false,
                 oldClrType: typeof(string),
@@ -258,7 +258,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "Name",
                 table: "PricingPlans",
-                type: "nvarchar(100)",
+                type: "varchar(100)",
                 maxLength: 100,
                 nullable: false,
                 oldClrType: typeof(string),
@@ -268,7 +268,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<bool>(
                 name: "IsPopular",
                 table: "PricingPlans",
-                type: "bit",
+                type: "tinyint(1)",
                 nullable: false,
                 oldClrType: typeof(byte),
                 oldType: "tinyint(1)");
@@ -276,7 +276,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<bool>(
                 name: "IsActive",
                 table: "PricingPlans",
-                type: "bit",
+                type: "tinyint(1)",
                 nullable: false,
                 oldClrType: typeof(byte),
                 oldType: "tinyint(1)");
@@ -284,7 +284,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "FeaturesJson",
                 table: "PricingPlans",
-                type: "nvarchar(max)",
+                type: "longtext",
                 nullable: false,
                 oldClrType: typeof(string),
                 oldType: "longtext");
@@ -292,7 +292,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "BtnText",
                 table: "PricingPlans",
-                type: "nvarchar(50)",
+                type: "varchar(50)",
                 maxLength: 50,
                 nullable: false,
                 oldClrType: typeof(string),
@@ -311,7 +311,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "TransactionId",
                 table: "Payments",
-                type: "nvarchar(255)",
+                type: "varchar(255)",
                 maxLength: 255,
                 nullable: false,
                 oldClrType: typeof(string),
@@ -321,7 +321,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "Status",
                 table: "Payments",
-                type: "nvarchar(50)",
+                type: "varchar(50)",
                 maxLength: 50,
                 nullable: false,
                 oldClrType: typeof(string),
@@ -331,7 +331,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "PaymentMethod",
                 table: "Payments",
-                type: "nvarchar(50)",
+                type: "varchar(50)",
                 maxLength: 50,
                 nullable: false,
                 oldClrType: typeof(string),
@@ -341,7 +341,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<DateTime>(
                 name: "PaymentDate",
                 table: "Payments",
-                type: "datetime2",
+                type: "datetime(6)",
                 nullable: false,
                 oldClrType: typeof(DateTime),
                 oldType: "datetime(6)");
@@ -358,7 +358,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "Name",
                 table: "Hotels",
-                type: "nvarchar(100)",
+                type: "varchar(100)",
                 maxLength: 100,
                 nullable: false,
                 oldClrType: typeof(string),
@@ -368,7 +368,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "MainImageUrl",
                 table: "Hotels",
-                type: "nvarchar(500)",
+                type: "varchar(500)",
                 maxLength: 500,
                 nullable: true,
                 oldClrType: typeof(string),
@@ -379,7 +379,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "ImageGallery",
                 table: "Hotels",
-                type: "nvarchar(max)",
+                type: "longtext",
                 nullable: true,
                 oldClrType: typeof(string),
                 oldType: "longtext",
@@ -388,7 +388,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "Description",
                 table: "Hotels",
-                type: "nvarchar(2000)",
+                type: "varchar(2000)",
                 maxLength: 2000,
                 nullable: true,
                 oldClrType: typeof(string),
@@ -399,7 +399,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "Address",
                 table: "Hotels",
-                type: "nvarchar(255)",
+                type: "varchar(255)",
                 maxLength: 255,
                 nullable: false,
                 oldClrType: typeof(string),
@@ -418,7 +418,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "RoomId",
                 table: "CheckInRecords",
-                type: "nvarchar(50)",
+                type: "varchar(50)",
                 maxLength: 50,
                 nullable: true,
                 oldClrType: typeof(string),
@@ -429,7 +429,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "ImageUrl",
                 table: "CheckInRecords",
-                type: "nvarchar(500)",
+                type: "varchar(500)",
                 maxLength: 500,
                 nullable: true,
                 oldClrType: typeof(string),
@@ -440,7 +440,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "IdentityNumber",
                 table: "CheckInRecords",
-                type: "nvarchar(20)",
+                type: "varchar(20)",
                 maxLength: 20,
                 nullable: false,
                 oldClrType: typeof(string),
@@ -450,7 +450,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "FullName",
                 table: "CheckInRecords",
-                type: "nvarchar(100)",
+                type: "varchar(100)",
                 maxLength: 100,
                 nullable: false,
                 oldClrType: typeof(string),
@@ -460,7 +460,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<DateTime>(
                 name: "DateOfBirth",
                 table: "CheckInRecords",
-                type: "datetime2",
+                type: "datetime(6)",
                 nullable: false,
                 oldClrType: typeof(DateTime),
                 oldType: "datetime(6)");
@@ -468,7 +468,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<DateTime>(
                 name: "CheckOutTime",
                 table: "CheckInRecords",
-                type: "datetime2",
+                type: "datetime(6)",
                 nullable: true,
                 oldClrType: typeof(DateTime),
                 oldType: "datetime(6)",
@@ -477,7 +477,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<DateTime>(
                 name: "CheckInTime",
                 table: "CheckInRecords",
-                type: "datetime2",
+                type: "datetime(6)",
                 nullable: false,
                 oldClrType: typeof(DateTime),
                 oldType: "datetime(6)");
@@ -494,7 +494,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "Status",
                 table: "Bookings",
-                type: "nvarchar(20)",
+                type: "varchar(20)",
                 maxLength: 20,
                 nullable: false,
                 oldClrType: typeof(string),
@@ -504,7 +504,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "GuestName",
                 table: "Bookings",
-                type: "nvarchar(100)",
+                type: "varchar(100)",
                 maxLength: 100,
                 nullable: true,
                 oldClrType: typeof(string),
@@ -515,7 +515,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "GuestEmail",
                 table: "Bookings",
-                type: "nvarchar(100)",
+                type: "varchar(100)",
                 maxLength: 100,
                 nullable: true,
                 oldClrType: typeof(string),
@@ -526,7 +526,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "GuestCccd",
                 table: "Bookings",
-                type: "nvarchar(20)",
+                type: "varchar(20)",
                 maxLength: 20,
                 nullable: true,
                 oldClrType: typeof(string),
@@ -537,7 +537,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<DateTime>(
                 name: "CheckOutDate",
                 table: "Bookings",
-                type: "datetime2",
+                type: "datetime(6)",
                 nullable: false,
                 oldClrType: typeof(DateTime),
                 oldType: "datetime(6)");
@@ -545,7 +545,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<DateTime>(
                 name: "CheckInDate",
                 table: "Bookings",
-                type: "datetime2",
+                type: "datetime(6)",
                 nullable: false,
                 oldClrType: typeof(DateTime),
                 oldType: "datetime(6)");
@@ -553,7 +553,7 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "BookingCode",
                 table: "Bookings",
-                type: "nvarchar(50)",
+                type: "varchar(50)",
                 maxLength: 50,
                 nullable: false,
                 oldClrType: typeof(string),
@@ -575,11 +575,11 @@ namespace Catkaa.MicroPms.Api.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    SenderName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    Message = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    IsResolved = table.Column<bool>(type: "bit", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    SenderName = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false),
+                    Email = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: false),
+                    Message = table.Column<string>(type: "longtext", nullable: false),
+                    IsResolved = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -621,7 +621,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 maxLength: 50,
                 nullable: false,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(50)",
+                oldType: "varchar(50)",
                 oldMaxLength: 50);
 
             migrationBuilder.AlterColumn<string>(
@@ -631,7 +631,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 maxLength: 20,
                 nullable: true,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(20)",
+                oldType: "varchar(20)",
                 oldMaxLength: 20,
                 oldNullable: true);
 
@@ -642,7 +642,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 maxLength: 256,
                 nullable: false,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(256)",
+                oldType: "varchar(256)",
                 oldMaxLength: 256);
 
             migrationBuilder.AlterColumn<string>(
@@ -652,7 +652,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 maxLength: 100,
                 nullable: true,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(100)",
+                oldType: "varchar(100)",
                 oldMaxLength: 100,
                 oldNullable: true);
 
@@ -718,7 +718,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 maxLength: 20,
                 nullable: false,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(20)",
+                oldType: "varchar(20)",
                 oldMaxLength: 20);
 
             migrationBuilder.AlterColumn<string>(
@@ -728,7 +728,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 maxLength: 50,
                 nullable: false,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(50)",
+                oldType: "varchar(50)",
                 oldMaxLength: 50);
 
             migrationBuilder.AlterColumn<string>(
@@ -738,7 +738,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 maxLength: 8,
                 nullable: true,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(8)",
+                oldType: "varchar(8)",
                 oldMaxLength: 8,
                 oldNullable: true);
 
@@ -749,7 +749,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 maxLength: 20,
                 nullable: false,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(20)",
+                oldType: "varchar(20)",
                 oldMaxLength: 20);
 
             migrationBuilder.AlterColumn<string>(
@@ -759,7 +759,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 maxLength: 500,
                 nullable: true,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(500)",
+                oldType: "varchar(500)",
                 oldMaxLength: 500,
                 oldNullable: true);
 
@@ -769,7 +769,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 type: "datetime(6)",
                 nullable: true,
                 oldClrType: typeof(DateTime),
-                oldType: "datetime2",
+                oldType: "datetime(6)",
                 oldNullable: true);
 
             migrationBuilder.AlterColumn<string>(
@@ -778,7 +778,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 type: "longtext",
                 nullable: true,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(max)",
+                oldType: "longtext",
                 oldNullable: true);
 
             migrationBuilder.AlterColumn<string>(
@@ -788,7 +788,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 maxLength: 2000,
                 nullable: true,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(2000)",
+                oldType: "varchar(2000)",
                 oldMaxLength: 2000,
                 oldNullable: true);
 
@@ -807,7 +807,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 type: "datetime(6)",
                 nullable: false,
                 oldClrType: typeof(DateTime),
-                oldType: "datetime2");
+                oldType: "datetime(6)");
 
             migrationBuilder.AlterColumn<string>(
                 name: "Comment",
@@ -815,7 +815,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 type: "longtext",
                 nullable: true,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(max)",
+                oldType: "longtext",
                 oldNullable: true);
 
             migrationBuilder.AlterColumn<string>(
@@ -825,7 +825,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 maxLength: 50,
                 nullable: false,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(50)",
+                oldType: "varchar(50)",
                 oldMaxLength: 50);
 
             migrationBuilder.AlterColumn<int>(
@@ -844,7 +844,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 maxLength: 200,
                 nullable: false,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(200)",
+                oldType: "varchar(200)",
                 oldMaxLength: 200);
 
             migrationBuilder.AlterColumn<string>(
@@ -854,7 +854,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 maxLength: 50,
                 nullable: false,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(50)",
+                oldType: "varchar(50)",
                 oldMaxLength: 50);
 
             migrationBuilder.AlterColumn<string>(
@@ -864,7 +864,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 maxLength: 100,
                 nullable: false,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(100)",
+                oldType: "varchar(100)",
                 oldMaxLength: 100);
 
             migrationBuilder.AlterColumn<byte>(
@@ -873,7 +873,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 type: "tinyint(1)",
                 nullable: false,
                 oldClrType: typeof(bool),
-                oldType: "bit");
+                oldType: "tinyint(1)");
 
             migrationBuilder.AlterColumn<byte>(
                 name: "IsActive",
@@ -881,7 +881,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 type: "tinyint(1)",
                 nullable: false,
                 oldClrType: typeof(bool),
-                oldType: "bit");
+                oldType: "tinyint(1)");
 
             migrationBuilder.AlterColumn<string>(
                 name: "FeaturesJson",
@@ -889,7 +889,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 type: "longtext",
                 nullable: false,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(max)");
+                oldType: "longtext");
 
             migrationBuilder.AlterColumn<string>(
                 name: "BtnText",
@@ -898,7 +898,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 maxLength: 50,
                 nullable: false,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(50)",
+                oldType: "varchar(50)",
                 oldMaxLength: 50);
 
             migrationBuilder.AlterColumn<int>(
@@ -917,7 +917,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 maxLength: 255,
                 nullable: false,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(255)",
+                oldType: "varchar(255)",
                 oldMaxLength: 255);
 
             migrationBuilder.AlterColumn<string>(
@@ -927,7 +927,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 maxLength: 50,
                 nullable: false,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(50)",
+                oldType: "varchar(50)",
                 oldMaxLength: 50);
 
             migrationBuilder.AlterColumn<string>(
@@ -937,7 +937,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 maxLength: 50,
                 nullable: false,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(50)",
+                oldType: "varchar(50)",
                 oldMaxLength: 50);
 
             migrationBuilder.AlterColumn<DateTime>(
@@ -946,7 +946,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 type: "datetime(6)",
                 nullable: false,
                 oldClrType: typeof(DateTime),
-                oldType: "datetime2");
+                oldType: "datetime(6)");
 
             migrationBuilder.AlterColumn<int>(
                 name: "Id",
@@ -964,7 +964,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 maxLength: 100,
                 nullable: false,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(100)",
+                oldType: "varchar(100)",
                 oldMaxLength: 100);
 
             migrationBuilder.AlterColumn<string>(
@@ -974,7 +974,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 maxLength: 500,
                 nullable: true,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(500)",
+                oldType: "varchar(500)",
                 oldMaxLength: 500,
                 oldNullable: true);
 
@@ -984,7 +984,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 type: "longtext",
                 nullable: true,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(max)",
+                oldType: "longtext",
                 oldNullable: true);
 
             migrationBuilder.AlterColumn<string>(
@@ -994,7 +994,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 maxLength: 2000,
                 nullable: true,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(2000)",
+                oldType: "varchar(2000)",
                 oldMaxLength: 2000,
                 oldNullable: true);
 
@@ -1005,7 +1005,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 maxLength: 255,
                 nullable: false,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(255)",
+                oldType: "varchar(255)",
                 oldMaxLength: 255);
 
             migrationBuilder.AlterColumn<int>(
@@ -1024,7 +1024,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 maxLength: 50,
                 nullable: true,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(50)",
+                oldType: "varchar(50)",
                 oldMaxLength: 50,
                 oldNullable: true);
 
@@ -1035,7 +1035,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 maxLength: 500,
                 nullable: true,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(500)",
+                oldType: "varchar(500)",
                 oldMaxLength: 500,
                 oldNullable: true);
 
@@ -1046,7 +1046,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 maxLength: 20,
                 nullable: false,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(20)",
+                oldType: "varchar(20)",
                 oldMaxLength: 20);
 
             migrationBuilder.AlterColumn<string>(
@@ -1056,7 +1056,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 maxLength: 100,
                 nullable: false,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(100)",
+                oldType: "varchar(100)",
                 oldMaxLength: 100);
 
             migrationBuilder.AlterColumn<DateTime>(
@@ -1065,7 +1065,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 type: "datetime(6)",
                 nullable: false,
                 oldClrType: typeof(DateTime),
-                oldType: "datetime2");
+                oldType: "datetime(6)");
 
             migrationBuilder.AlterColumn<DateTime>(
                 name: "CheckOutTime",
@@ -1073,7 +1073,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 type: "datetime(6)",
                 nullable: true,
                 oldClrType: typeof(DateTime),
-                oldType: "datetime2",
+                oldType: "datetime(6)",
                 oldNullable: true);
 
             migrationBuilder.AlterColumn<DateTime>(
@@ -1082,7 +1082,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 type: "datetime(6)",
                 nullable: false,
                 oldClrType: typeof(DateTime),
-                oldType: "datetime2");
+                oldType: "datetime(6)");
 
             migrationBuilder.AlterColumn<int>(
                 name: "Id",
@@ -1100,7 +1100,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 maxLength: 20,
                 nullable: false,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(20)",
+                oldType: "varchar(20)",
                 oldMaxLength: 20);
 
             migrationBuilder.AlterColumn<string>(
@@ -1110,7 +1110,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 maxLength: 100,
                 nullable: true,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(100)",
+                oldType: "varchar(100)",
                 oldMaxLength: 100,
                 oldNullable: true);
 
@@ -1121,7 +1121,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 maxLength: 100,
                 nullable: true,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(100)",
+                oldType: "varchar(100)",
                 oldMaxLength: 100,
                 oldNullable: true);
 
@@ -1132,7 +1132,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 maxLength: 20,
                 nullable: true,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(20)",
+                oldType: "varchar(20)",
                 oldMaxLength: 20,
                 oldNullable: true);
 
@@ -1142,7 +1142,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 type: "datetime(6)",
                 nullable: false,
                 oldClrType: typeof(DateTime),
-                oldType: "datetime2");
+                oldType: "datetime(6)");
 
             migrationBuilder.AlterColumn<DateTime>(
                 name: "CheckInDate",
@@ -1150,7 +1150,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 type: "datetime(6)",
                 nullable: false,
                 oldClrType: typeof(DateTime),
-                oldType: "datetime2");
+                oldType: "datetime(6)");
 
             migrationBuilder.AlterColumn<string>(
                 name: "BookingCode",
@@ -1159,7 +1159,7 @@ namespace Catkaa.MicroPms.Api.Migrations
                 maxLength: 50,
                 nullable: false,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(50)",
+                oldType: "varchar(50)",
                 oldMaxLength: 50);
 
             migrationBuilder.AlterColumn<int>(
