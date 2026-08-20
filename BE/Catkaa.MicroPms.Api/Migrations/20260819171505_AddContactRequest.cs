@@ -57,6 +57,18 @@ namespace Catkaa.MicroPms.Api.Migrations
                 name: "FK_Bookings_Users_UserId",
                 table: "Bookings");
 
+            migrationBuilder.DropForeignKey(
+                name: "FK_Hotels_Users_HostId",
+                table: "Hotels");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Reviews_Users_UserId",
+                table: "Reviews");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Payments_Users_UserId",
+                table: "Payments");
+
             migrationBuilder.AlterColumn<int>(
                 name: "Id",
                 table: "Users",
@@ -69,6 +81,29 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AddForeignKey(
                 name: "FK_Bookings_Users_UserId",
                 table: "Bookings",
+                column: "UserId",
+                principalTable: "Users",
+                principalColumn: "Id");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Hotels_Users_HostId",
+                table: "Hotels",
+                column: "HostId",
+                principalTable: "Users",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Restrict);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Reviews_Users_UserId",
+                table: "Reviews",
+                column: "UserId",
+                principalTable: "Users",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Payments_Users_UserId",
+                table: "Payments",
                 column: "UserId",
                 principalTable: "Users",
                 principalColumn: "Id");
@@ -624,6 +659,18 @@ namespace Catkaa.MicroPms.Api.Migrations
                 name: "FK_Bookings_Users_UserId",
                 table: "Bookings");
 
+            migrationBuilder.DropForeignKey(
+                name: "FK_Hotels_Users_HostId",
+                table: "Hotels");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Reviews_Users_UserId",
+                table: "Reviews");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Payments_Users_UserId",
+                table: "Payments");
+
             migrationBuilder.AlterColumn<int>(
                 name: "Id",
                 table: "Users",
@@ -636,6 +683,29 @@ namespace Catkaa.MicroPms.Api.Migrations
             migrationBuilder.AddForeignKey(
                 name: "FK_Bookings_Users_UserId",
                 table: "Bookings",
+                column: "UserId",
+                principalTable: "Users",
+                principalColumn: "Id");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Hotels_Users_HostId",
+                table: "Hotels",
+                column: "HostId",
+                principalTable: "Users",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Restrict);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Reviews_Users_UserId",
+                table: "Reviews",
+                column: "UserId",
+                principalTable: "Users",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Payments_Users_UserId",
+                table: "Payments",
                 column: "UserId",
                 principalTable: "Users",
                 principalColumn: "Id");
