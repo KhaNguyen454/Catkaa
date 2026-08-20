@@ -582,11 +582,13 @@ const OwnerDashboard: React.FC = () => {
   };
 
   const openEditRoom = (room: RoomRecord) => {
+    // 1. Set trạng thái nhận diện Edit
     setEditingRoomId(room.id);
     setRoomHotelId(String(room.hotelId));
     setSelectedHotelForRooms(
       hotels.find((hotel) => hotel.id === room.hotelId) ?? null,
     );
+    // 2. Binding toàn bộ dữ liệu cũ vào form state
     setRoomForm({
       roomNumber: room.roomNumber,
       roomType: room.roomType,
@@ -597,6 +599,7 @@ const OwnerDashboard: React.FC = () => {
       imageGallery: room.imageGallery?.join(", ") ?? "",
     });
     setRoomsError("");
+    // 3. Mở Modal
     setRoomModalOpen(true);
   };
 
