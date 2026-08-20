@@ -32,12 +32,34 @@ namespace Catkaa.MicroPms.Api.Controllers
 
             if (CurrentUserRole == "Admin")
             {
+                // Lưu ý: Tính toán tuần tự vì EF Core DbContext không cho phép gọi nhiều thao tác async song song (Task.WhenAll)
                 var totalUsers = await _context.Users.CountAsync();
+                
                 var totalHotels = await _context.Hotels.CountAsync();
-                var totalSystemRevenue = await _context.Payments
-                    .Where(p => p.Status == "Completed")
-                    .SumAsync(p => p.Amount);
+                
                 var totalSupportRequests = await _context.ContactRequests.CountAsync();
+
+                // 1. Doanh thu từ bảng Payments (Gói dịch vụ hoặc thanh toán online)
+                var paymentRevenue = await _context.Payments
+                    .Where(p => p.Status == "Completed" || p.Status == "Thành công")
+                    .SumAsync(p => p.Amount);
+
+                // 2. Doanh thu từ bảng Bookings (Vì CSDL không lưu cột TotalPrice, cần tự tính toán: Số đêm * Giá phòng)
+                var completedBookings = await _context.Bookings
+                    .Include(b => b.Room)
+                    .Where(b => b.Status == "CheckOut" || b.Status == "Completed")
+                    .Select(b => new { b.CheckInDate, b.CheckOutDate, Price = b.Room != null ? b.Room.Price : 0 })
+                    .ToListAsync();
+
+                var bookingRevenue = completedBookings.Sum(b => 
+                {
+                    var nights = (b.CheckOutDate.Date - b.CheckInDate.Date).Days;
+                    if (nights <= 0) nights = 1;
+                    return nights * b.Price;
+                });
+
+                // Gom 2 nguồn doanh thu lại thành 1
+                var totalSystemRevenue = paymentRevenue + bookingRevenue;
 
                 var adminSummary = new DashboardSummaryDto
                 {
