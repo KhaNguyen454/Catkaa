@@ -12,6 +12,7 @@ const Services: React.FC = () => {
   const [packageToConfirm, setPackageToConfirm] = useState<PricingPlan | null>(null);
   const [selectedPackageForPayment, setSelectedPackageForPayment] = useState<PricingPlan | null>(null);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [pendingValidation, setPendingValidation] = useState(false);
   const navigate = useNavigate();
   const { notify } = useMessage();
 
@@ -61,24 +62,16 @@ const Services: React.FC = () => {
     setSelectedPackageForPayment(pkg);
   };
 
-  const handleMockPayment = async (pkg: PricingPlan) => {
+  const handleQrPayment = async (pkg: PricingPlan) => {
     setIsProcessingPayment(true);
     try {
-      // Gọi API giả lập mua gói mới thay vì upgradeToHost
-      const response = await PaymentService.mockPlanPayment(pkg.id);
-      notify("Thanh toán thành công! Tài khoản của bạn đã được nâng cấp thành Host.", "success");
-      
-      // Xóa token cũ vì nó đang chứa Role="Guest"
-      clearAuthToken();
-      
-      // Đáng lẽ sẽ redirect về /dashboard, nhưng vì Token cũ không qua được xác thực [Authorize(Roles="Host")] 
-      // của Backend, nên bắt buộc phải cho user đăng nhập lại để nhận Token mới.
-      setTimeout(() => navigate("/login"), 3000);
+      await PaymentService.qrPlanPayment(pkg.id);
+      setPendingValidation(true);
     } catch (err: any) {
-      notify(err.message || "Có lỗi xảy ra khi thanh toán", "error");
+      notify(err.message || "Có lỗi xảy ra khi tạo giao dịch", "error");
+      setSelectedPackageForPayment(null);
     } finally {
       setIsProcessingPayment(false);
-      setSelectedPackageForPayment(null);
     }
   };
 
@@ -277,41 +270,72 @@ const Services: React.FC = () => {
           <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: "450px" }}>
             <div className="modal-content rounded-4 border-0 shadow-lg">
               <div className="modal-header border-bottom-0 pb-0">
-                <h5 className="modal-title fw-bold">Thanh toán gói dịch vụ</h5>
-                <button 
-                  type="button" 
-                  className="btn-close" 
-                  onClick={() => setSelectedPackageForPayment(null)}
-                  disabled={isProcessingPayment}
-                ></button>
+                <h5 className="modal-title fw-bold">Thanh toán chuyển khoản (QR)</h5>
+                {!pendingValidation && (
+                  <button 
+                    type="button" 
+                    className="btn-close" 
+                    onClick={() => setSelectedPackageForPayment(null)}
+                    disabled={isProcessingPayment}
+                  ></button>
+                )}
               </div>
               <div className="modal-body p-4 text-center">
-                <div className="mb-4">
-                  <h4 className="fw-bold" style={{ color: "#1686cb" }}>{selectedPackageForPayment.name}</h4>
-                  <h5 className="text-muted mb-0">{selectedPackageForPayment.price}</h5>
-                </div>
-                
-                <div className="d-flex flex-column gap-3">
-                  <button
-                    onClick={() => handleMockPayment(selectedPackageForPayment)}
-                    disabled={isProcessingPayment}
-                    className="btn rounded-pill text-white fw-bold py-3 shadow-sm d-flex justify-content-center align-items-center"
-                    style={{ background: "#10b981", fontSize: "14px" }}
-                  >
-                    {isProcessingPayment ? <Loader2 size={18} className="me-2 spin" /> : <Check size={18} className="me-2" />}
-                    {isProcessingPayment ? "Đang xử lý..." : "Thanh toán (Giả lập)"}
-                  </button>
-                  
-                  <button
-                    className="btn rounded-pill text-white fw-bold py-3 shadow-sm d-flex justify-content-center align-items-center"
-                    style={{ background: "#94a3b8", fontSize: "14px" }}
-                    onClick={() => alert("Cổng thanh toán VNPay hiện đang được bảo trì. Vui lòng sử dụng tính năng Thanh toán (Giả lập).")}
-                    disabled={isProcessingPayment}
-                  >
-                    <ExternalLink size={18} className="me-2" /> 
-                    Thanh toán VNPay (Đang bảo trì)
-                  </button>
-                </div>
+                {pendingValidation ? (
+                  <div className="py-4">
+                    <div className="mb-3 text-warning">
+                      <Loader2 size={48} className="spin mx-auto" />
+                    </div>
+                    <h5 className="fw-bold mb-3">Đang chờ xác nhận</h5>
+                    <p className="text-muted mb-4">
+                      Hệ thống đang xử lý xác nhận thanh toán của bạn. Vui lòng đợi hoặc liên hệ Hotline: <strong className="text-primary">1900 1560</strong> để được hỗ trợ nhanh nhất.
+                    </p>
+                    <button
+                      className="btn btn-outline-secondary rounded-pill px-4"
+                      onClick={() => {
+                        setPendingValidation(false);
+                        setSelectedPackageForPayment(null);
+                        navigate("/");
+                      }}
+                    >
+                      Quay về trang chủ
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="mb-4">
+                      <h4 className="fw-bold" style={{ color: "#1686cb" }}>{selectedPackageForPayment.name}</h4>
+                      <h5 className="text-muted mb-3">{selectedPackageForPayment.price}</h5>
+                      
+                      <div className="bg-light p-3 rounded-3 mb-4">
+                        <img 
+                          src={`https://img.vietqr.io/image/MB-0123456789-compact.png?amount=${selectedPackageForPayment.price.replace(/\D/g, '')}&addInfo=Mua Goi ${selectedPackageForPayment.name}`}
+                          alt="QR Thanh Toán"
+                          className="img-fluid rounded border shadow-sm mb-3"
+                          style={{ maxWidth: "250px" }}
+                        />
+                        <div className="text-start small text-muted">
+                          <p className="mb-1"><strong>Ngân hàng:</strong> MBBank</p>
+                          <p className="mb-1"><strong>Số tài khoản:</strong> 0123456789</p>
+                          <p className="mb-1"><strong>Chủ tài khoản:</strong> CATKAA SYSTEM</p>
+                          <p className="mb-0"><strong>Nội dung:</strong> Mua Goi {selectedPackageForPayment.name}</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="d-flex flex-column gap-3">
+                      <button
+                        onClick={() => handleQrPayment(selectedPackageForPayment)}
+                        disabled={isProcessingPayment}
+                        className="btn rounded-pill text-white fw-bold py-3 shadow-sm d-flex justify-content-center align-items-center"
+                        style={{ background: "#10b981", fontSize: "14px" }}
+                      >
+                        {isProcessingPayment ? <Loader2 size={18} className="me-2 spin" /> : <Check size={18} className="me-2" />}
+                        {isProcessingPayment ? "Đang xử lý..." : "Tôi đã thanh toán thành công"}
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>

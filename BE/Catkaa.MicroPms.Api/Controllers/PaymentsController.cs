@@ -161,17 +161,17 @@ namespace Catkaa.MicroPms.Api.Controllers
         }
 
         /// <summary>
-        /// [Mock] API giả lập thanh toán thành công để bypass VNPay khi môi trường test lỗi.
+        /// [Manual QR] Khách báo đã chuyển khoản thành công.
         /// </summary>
-        [HttpPost("{bookingId}/mock-pay")]
+        [HttpPost("{bookingId}/qr-pay")]
         [AllowAnonymous]
-        public async Task<IActionResult> MockPay(int bookingId)
+        public async Task<IActionResult> QrPay(int bookingId)
         {
             try
             {
-                var result = await _paymentService.MockPaymentAsync(bookingId);
+                var result = await _paymentService.QrPaymentAsync(bookingId);
                 if (!result.Success) return BadRequest(new { message = result.Message });
-                return Ok(new { message = "Thanh toán giả lập thành công" });
+                return Ok(new { message = "Thanh toán QR đang chờ xác nhận" });
             }
             catch (System.Exception ex)
             {
@@ -180,18 +180,37 @@ namespace Catkaa.MicroPms.Api.Controllers
         }
 
         /// <summary>
-        /// [Mock] API giả lập thanh toán thành công mua gói dịch vụ để nâng cấp Host.
+        /// [Manual QR] Báo chuyển khoản thành công mua gói dịch vụ.
         /// </summary>
-        [HttpPost("mock-plan-payment/{planId}")]
+        [HttpPost("qr-plan-payment/{planId}")]
         [Authorize]
-        public async Task<IActionResult> MockPlanPay(int planId)
+        public async Task<IActionResult> QrPlanPay(int planId)
         {
             if (CurrentUserId == null)
                 return Unauthorized(new { message = "Chưa đăng nhập" });
                 
             try
             {
-                var result = await _paymentService.MockPlanPaymentAsync(planId, CurrentUserId.Value);
+                var result = await _paymentService.QrPlanPaymentAsync(planId, CurrentUserId.Value);
+                if (!result.Success) return BadRequest(new { message = result.Message });
+                return Ok(new { message = "Thanh toán QR đang chờ xác nhận" });
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { message = "Internal server error", details = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// [Admin/Host] Duyệt giao dịch thanh toán chuyển khoản thủ công.
+        /// </summary>
+        [HttpPut("{id}/confirm")]
+        [Authorize(Roles = "Admin, Host")]
+        public async Task<IActionResult> ConfirmPayment(int id)
+        {
+            try
+            {
+                var result = await _paymentService.ConfirmPaymentAsync(id, CurrentUserRole);
                 if (!result.Success) return BadRequest(new { message = result.Message });
                 return Ok(result.Data);
             }

@@ -14,7 +14,8 @@ namespace Catkaa.MicroPms.Api.Services.Interfaces
         Task<ServiceResult<List<PaymentResponseDto>>> GetPaymentsAsync(string? type, string role, int? currentUserId, int? filterHotelId);
         Task<ServiceResult<PaymentResponseDto>> GetPaymentByBookingAsync(int bookingId, string role, int? currentUserId);
         Task<ServiceResult<List<PaymentResponseDto>>> GetMyPaymentsAsync(int userId, string? type);
-        Task<ServiceResult<object>> MockPaymentAsync(int bookingId);
-        Task<ServiceResult<object>> MockPlanPaymentAsync(int planId, int userId);
+        Task<ServiceResult<object>> QrPaymentAsync(int bookingId);
+        Task<ServiceResult<object>> QrPlanPaymentAsync(int planId, int userId);
+        Task<ServiceResult<object>> ConfirmPaymentAsync(int paymentId, string role);
     }
 }

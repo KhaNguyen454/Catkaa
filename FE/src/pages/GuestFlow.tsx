@@ -565,7 +565,8 @@ const StepPayment = ({
   const paymentUrl = data?.paymentUrl;
   const [paid, setPaid] = useState(false);
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
-  const [loadingMock, setLoadingMock] = useState(false);
+  const [pendingValidation, setPendingValidation] = useState(false);
+  const [loadingQr, setLoadingQr] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -591,21 +592,17 @@ const StepPayment = ({
     }
   };
 
-  const handleMockPay = async () => {
+  const handleQrPay = async () => {
     if (!data?.bookingId) return;
-    setLoadingMock(true);
+    setLoadingQr(true);
     try {
-      const result = await PaymentService.mockPayment(data.bookingId);
-      if (result.roomPassword && data) {
-        data.roomPassword = result.roomPassword;
-      }
-      setPaymentConfirmed(true);
-      setPaid(true);
-    } catch (err) {
-      setError("Quá trình thanh toán đang bị gián đoạn. Vui lòng thử lại sau.");
+      await PaymentService.qrPayment(data.bookingId);
+      setPendingValidation(true);
+    } catch (err: any) {
+      setError(err.message || "Quá trình thanh toán đang bị gián đoạn. Vui lòng thử lại sau.");
       setTimeout(() => setError(""), 5000);
     } finally {
-      setLoadingMock(false);
+      setLoadingQr(false);
     }
   };
 
@@ -660,6 +657,21 @@ const StepPayment = ({
               </div>
             )}
           </motion.div>
+        ) : pendingValidation ? (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="rounded-4 p-3 text-center"
+            style={{ background: "#fffbeb", border: "1.5px solid #fde68a" }}
+          >
+            <div className="mb-2" style={{ fontSize: "24px" }}>⏳</div>
+            <p className="fw-bold mb-2" style={{ fontSize: "14px", color: "#92400e" }}>
+              Đang chờ xác nhận...
+            </p>
+            <p className="text-muted mb-0" style={{ fontSize: "12px" }}>
+              Hệ thống đang xử lý xác nhận thanh toán của bạn. Vui lòng đợi hoặc liên hệ Hotline: <strong className="text-primary">1900 1560</strong> để được hỗ trợ nhanh nhất.
+            </p>
+          </motion.div>
         ) : !paid ? (
           <motion.div
             initial={{ opacity: 0, y: 8 }}
@@ -667,13 +679,22 @@ const StepPayment = ({
             className="rounded-4 p-3 text-center"
             style={{ background: "linear-gradient(135deg,#eff6ff,#dbeafe)", border: "1.5px solid #bfdbfe" }}
           >
-            <div className="mb-2" style={{ fontSize: "28px" }}>💳</div>
-            <p className="fw-bold mb-1" style={{ fontSize: "12px", color: "#1e40af" }}>
-              Thanh toán qua VNPay
+            <p className="fw-bold mb-2" style={{ fontSize: "12px", color: "#1e40af" }}>
+              Thanh toán chuyển khoản (QR)
             </p>
-            <p className="text-muted mb-0" style={{ fontSize: "10px" }}>
-              Nhấn nút bên dưới để chuyển sang trang thanh toán an toàn của VNPay.
-            </p>
+            <div className="bg-white p-2 rounded-3 mb-2 shadow-sm d-inline-block">
+              <img 
+                src={`https://img.vietqr.io/image/MB-0123456789-compact.png?amount=${(data as any)?.totalPrice ?? ''}&addInfo=Thanh toan booking ${data?.bookingCode ?? ''}`}
+                alt="QR Thanh Toán"
+                className="img-fluid rounded border"
+                style={{ maxWidth: "150px" }}
+              />
+            </div>
+            <div className="text-start small text-muted mx-auto" style={{ maxWidth: "200px", fontSize: "10px" }}>
+              <p className="mb-1"><strong>NH:</strong> MBBank - 0123456789</p>
+              <p className="mb-1"><strong>Tên:</strong> CATKAA SYSTEM</p>
+              <p className="mb-0"><strong>ND:</strong> Thanh toan booking {data?.bookingCode}</p>
+            </div>
           </motion.div>
         ) : (
           <motion.div
@@ -704,16 +725,25 @@ const StepPayment = ({
             <Check size={14} className="me-2" />
             Về trang chủ
           </Link>
+        ) : pendingValidation ? (
+          <Link
+            to="/"
+            onClick={() => sessionStorage.removeItem("catka_checkin_state")}
+            className="btn w-100 rounded-pill fw-bold py-2 text-decoration-none"
+            style={{ background: "#f1f5f9", color: "#64748b", fontSize: "12px" }}
+          >
+            Về trang chủ
+          </Link>
         ) : !paid ? (
           <>
             <button
-              onClick={handleMockPay}
-              disabled={loadingMock}
+              onClick={handleQrPay}
+              disabled={loadingQr}
               className="btn w-100 rounded-pill text-white fw-bold py-2 shadow"
               style={{ background: "#10b981", fontSize: "13px" }}
             >
-              {loadingMock ? <Loader2 size={14} className="me-2 spin" /> : <Check size={14} className="me-2" />}
-              Thanh toán (Giả lập)
+              {loadingQr ? <Loader2 size={14} className="me-2 spin" /> : <Check size={14} className="me-2" />}
+              Tôi đã thanh toán thành công
             </button>
             <button
               onClick={handlePay}
@@ -734,7 +764,7 @@ const StepPayment = ({
             Mở lại trang VNPay
           </button>
         )}
-        {!paymentConfirmed && (
+        {!paymentConfirmed && !pendingValidation && (
           <Link
             to="/"
             onClick={() => sessionStorage.removeItem("catka_checkin_state")}

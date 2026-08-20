@@ -341,7 +341,7 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
             return ServiceResult<PaymentResponseDto>.Ok("Success", payment);
         }
 
-        public async Task<ServiceResult<object>> MockPaymentAsync(int bookingId)
+        public async Task<ServiceResult<object>> QrPaymentAsync(int bookingId)
         {
             var booking = await _context.Bookings
                 .Include(b => b.Room)
@@ -350,43 +350,32 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
             if (booking == null) return ServiceResult<object>.Fail("Booking not found");
 
             var alreadyPaid = await _context.Payments
-                .AnyAsync(p => p.BookingId == bookingId && p.Status == "Success");
+                .AnyAsync(p => p.BookingId == bookingId && (p.Status == "Success" || p.Status == "PendingValidation"));
             
             if (alreadyPaid)
-                return ServiceResult<object>.Ok("Order already confirmed");
+                return ServiceResult<object>.Ok("Order already confirmed or pending validation");
 
             var days = (booking.CheckOutDate.Date - booking.CheckInDate.Date).Days;
             if (days <= 0) days = 1;
 
             decimal totalAmount = days * (booking.Room?.Price ?? 0);
 
-            booking.Status = "CheckIn";
-            
-            if (booking.Room != null)
-            {
-                booking.Room.Status = "Occupied";
-                if (string.IsNullOrEmpty(booking.Room.RoomPassword))
-                {
-                    booking.Room.RoomPassword = Random.Shared.Next(10000000, 99999999).ToString();
-                }
-            }
-
             _context.Payments.Add(new Payment
             {
                 Type = PaymentType.RoomBooking,
                 BookingId = booking.Id,
-                TransactionId = "MOCK_" + DateTime.Now.Ticks.ToString(),
+                TransactionId = "QR_" + DateTime.Now.Ticks.ToString(),
                 Amount = totalAmount,
-                Status = "Success",
+                Status = "PendingValidation",
                 PaymentDate = DateTime.Now,
-                PaymentMethod = "Mock"
+                PaymentMethod = "QR"
             });
 
             await _context.SaveChangesAsync();
-            return ServiceResult<object>.Ok("Mock Payment Successful", new { roomPassword = booking.Room?.RoomPassword });
+            return ServiceResult<object>.Ok("QR Payment Pending Validation");
         }
 
-        public async Task<ServiceResult<object>> MockPlanPaymentAsync(int planId, int userId)
+        public async Task<ServiceResult<object>> QrPlanPaymentAsync(int planId, int userId)
         {
             var user = await _context.Users.FindAsync(userId);
             if (user == null) return ServiceResult<object>.Fail("User not found");
@@ -395,10 +384,10 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
             if (plan == null || !plan.IsActive) return ServiceResult<object>.Fail("Pricing plan not found or inactive");
 
             var alreadyPaid = await _context.Payments
-                .AnyAsync(p => p.UserId == userId && p.PricingPlanId == planId && p.Status == "Success");
+                .AnyAsync(p => p.UserId == userId && p.PricingPlanId == planId && (p.Status == "Success" || p.Status == "PendingValidation"));
 
             if (alreadyPaid)
-                return ServiceResult<object>.Ok("Subscription already confirmed");
+                return ServiceResult<object>.Ok("Subscription already confirmed or pending validation");
 
             decimal amount = 0;
             var priceStr = new string(plan.Price.Where(char.IsDigit).ToArray());
@@ -409,45 +398,93 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
                 Type = PaymentType.PlanSubscription,
                 PricingPlanId = planId,
                 UserId = userId,
-                TransactionId = "MOCK_PLAN_" + DateTime.Now.Ticks.ToString(),
+                TransactionId = "QR_PLAN_" + DateTime.Now.Ticks.ToString(),
                 Amount = amount,
-                Status = "Success",
+                Status = "PendingValidation",
                 PaymentDate = DateTime.Now,
-                PaymentMethod = "Mock"
+                PaymentMethod = "QR"
             });
 
-            if (user.Role != "Admin")
+            await _context.SaveChangesAsync();
+            return ServiceResult<object>.Ok("QR Plan Subscription Pending Validation");
+        }
+
+        public async Task<ServiceResult<object>> ConfirmPaymentAsync(int paymentId, string role)
+        {
+            if (role != "Admin" && role != "Host")
+                return ServiceResult<object>.Fail("Unauthorized access");
+
+            var payment = await _context.Payments
+                .Include(p => p.Booking)
+                    .ThenInclude(b => b!.Room)
+                .Include(p => p.User)
+                .Include(p => p.PricingPlan)
+                .FirstOrDefaultAsync(p => p.Id == paymentId);
+
+            if (payment == null) return ServiceResult<object>.Fail("Payment not found");
+            if (payment.Status == "Success") return ServiceResult<object>.Ok("Payment already confirmed");
+            if (payment.Status != "PendingValidation") return ServiceResult<object>.Fail("Payment is not in pending state");
+
+            payment.Status = "Success";
+            payment.PaymentDate = DateTime.Now;
+
+            if (payment.Type == PaymentType.RoomBooking && payment.Booking != null)
             {
-                user.Role = "Host";
+                var booking = payment.Booking;
+                booking.Status = "CheckIn";
+                
+                if (booking.Room != null)
+                {
+                    booking.Room.Status = "Occupied";
+                    if (string.IsNullOrEmpty(booking.Room.RoomPassword))
+                    {
+                        booking.Room.RoomPassword = Random.Shared.Next(10000000, 99999999).ToString();
+                    }
+                }
+                await _context.SaveChangesAsync();
+                return ServiceResult<object>.Ok("Payment Confirmed", new { roomPassword = booking.Room?.RoomPassword });
+            }
+            else if (payment.Type == PaymentType.PlanSubscription && payment.User != null && payment.PricingPlan != null)
+            {
+                var user = payment.User;
+                var plan = payment.PricingPlan;
+
+                if (user.Role != "Admin")
+                {
+                    user.Role = "Host";
+                }
+                
+                await _context.SaveChangesAsync();
+
+                try
+                {
+                    var adminEmail = _configuration["SmtpSettings:SenderEmail"] ?? "catkaofficial@gmail.com";
+                    var subject = $"Thông báo: Nâng cấp Host - {plan.Name} - {user.Username}";
+                    var body = $@"
+                        <h3>Hệ thống vừa duyệt thanh toán gói dịch vụ mới!</h3>
+                        <p><strong>Tài khoản:</strong> {user.Username}</p>
+                        <p><strong>Email đăng ký:</strong> {user.Email}</p>
+                        <p><strong>Gói dịch vụ đã chọn:</strong> {plan.Name}</p>
+                        <p>Hệ thống đã tự động nâng cấp quyền Host cho tài khoản này.</p>
+                    ";
+                    await _emailService.SendEmailAsync(adminEmail, subject, body);
+
+                    if (!string.IsNullOrEmpty(user.Email))
+                    {
+                        await _emailService.SendEmailAsync(user.Email, "Nâng cấp thành công", 
+                            $"<p>Chào {user.Username},</p><p>Thanh toán gói {plan.Name} của bạn đã được duyệt thành công. Hãy đăng xuất và đăng nhập lại để sử dụng tính năng Host.</p>");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to send upgrade emails: {ex.Message}");
+                }
+
+                return ServiceResult<object>.Ok("Plan Payment Confirmed", new { role = user.Role });
             }
 
             await _context.SaveChangesAsync();
-
-            try
-            {
-                var adminEmail = _configuration["SmtpSettings:SenderEmail"] ?? "catkaofficial@gmail.com";
-                var subject = $"Thông báo: Nâng cấp Host - {plan.Name} - {user.Username}";
-                var body = $@"
-                    <h3>Hệ thống vừa có một người dùng đăng ký gói dịch vụ mới!</h3>
-                    <p><strong>Tài khoản:</strong> {user.Username}</p>
-                    <p><strong>Email đăng ký:</strong> {user.Email}</p>
-                    <p><strong>Gói dịch vụ đã chọn:</strong> {plan.Name} ({plan.Price})</p>
-                    <p>Hệ thống đã tự động nâng cấp quyền Host cho tài khoản này.</p>
-                ";
-                await _emailService.SendEmailAsync(adminEmail, subject, body);
-
-                if (!string.IsNullOrEmpty(user.Email))
-                {
-                    await _emailService.SendEmailAsync(user.Email, "Nâng cấp thành công", 
-                        $"<p>Chào {user.Username},</p><p>Bạn đã mua gói {plan.Name} thành công. Hãy đăng xuất và đăng nhập lại để sử dụng tính năng Host.</p>");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Failed to send upgrade emails: {ex.Message}");
-            }
-
-            return ServiceResult<object>.Ok("Mock Plan Subscription Successful", new { role = user.Role });
+            return ServiceResult<object>.Ok("Payment confirmed");
         }
     }
 }

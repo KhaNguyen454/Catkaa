@@ -53,8 +53,8 @@ class PaymentService {
     return await response.json();
   }
 
-  static async mockPayment(bookingId: number): Promise<{ roomPassword?: string }> {
-    const response = await fetch(`${API_BASE_URL}/api/payments/${bookingId}/mock-pay`, {
+  static async qrPayment(bookingId: number): Promise<{ roomPassword?: string }> {
+    const response = await fetch(`${API_BASE_URL}/api/payments/${bookingId}/qr-pay`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -63,15 +63,15 @@ class PaymentService {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || 'Thanh toán giả lập thất bại');
+      throw new Error(error.message || 'Thanh toán chuyển khoản QR thất bại');
     }
     
     const result = await response.json();
     return result.data || {};
   }
 
-  static async mockPlanPayment(planId: number): Promise<any> {
-    const response = await fetch(`${API_BASE_URL}/api/payments/mock-plan-payment/${planId}`, {
+  static async qrPlanPayment(planId: number): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/api/payments/qr-plan-payment/${planId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -81,7 +81,24 @@ class PaymentService {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || 'Thanh toán giả lập thất bại');
+      throw new Error(error.message || 'Thanh toán chuyển khoản QR thất bại');
+    }
+    
+    return await response.json();
+  }
+
+  static async confirmPayment(paymentId: number): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/api/payments/${paymentId}/confirm`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${getAuthToken()}`
+      }
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Xác nhận thanh toán thất bại');
     }
     
     return await response.json();
