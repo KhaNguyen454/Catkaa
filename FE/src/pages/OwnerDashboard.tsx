@@ -4282,18 +4282,6 @@ const OwnerDashboard: React.FC = () => {
               >
                 Đóng
               </button>
-              <button
-                type="button"
-                className="db-btn-primary"
-                onClick={() => {
-                  const r = viewRoom;
-                  setViewRoom(null);
-                  const rh = hotels.find((h) => h.id === r.hotelId);
-                  if (rh) openRoomManager(rh);
-                }}
-              >
-                Chỉnh sửa
-              </button>
             </div>
           </div>
         </div>
