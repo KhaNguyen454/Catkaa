@@ -2318,6 +2318,16 @@ const OwnerDashboard: React.FC = () => {
                             >
                               {room.status === "Available" ? "Còn trống" : room.status === "Cleaning" ? "Đang dọn dẹp" : "Đã có khách"}
                             </span>
+                            {room.status === "Occupied" && room.roomPassword && (
+                              <div style={{ color: "#2563eb", fontWeight: 700, marginTop: "4px", fontSize: "11px" }}>
+                                Passcode: {room.roomPassword}
+                              </div>
+                            )}
+                            {room.status !== "Occupied" && (
+                              <div style={{ fontSize: "11px", marginTop: "4px", color: "#94a3b8" }}>
+                                --
+                              </div>
+                            )}
                           </td>
                           <td>
                             <div
@@ -2338,13 +2348,7 @@ const OwnerDashboard: React.FC = () => {
                               <button
                                 className="db-ibtn db-ibtn-edit"
                                 type="button"
-                                onClick={() => {
-                                  const roomHotel = hotels.find(
-                                    (hotel) => hotel.id === room.hotelId,
-                                  );
-                                  if (roomHotel) openRoomManager(roomHotel);
-                                  else void handleOpenRoomCreator();
-                                }}
+                                onClick={() => openEditRoom(room)}
                                 title="Chỉnh sửa"
                               >
                                 <Pencil size={13} />
@@ -4197,6 +4201,15 @@ const OwnerDashboard: React.FC = () => {
                   {viewRoom.status === "Available" ? "Còn trống" : viewRoom.status === "Cleaning" ? "Đang dọn dẹp" : "Đã có khách"}
                 </span>
               </div>
+
+              {viewRoom.status === "Occupied" && viewRoom.roomPassword && (
+                <div className="db-info-row">
+                  <span className="db-info-lbl">Mã nhận phòng</span>
+                  <span className="db-info-val" style={{ color: "#2563eb", fontWeight: 700 }}>
+                    {viewRoom.roomPassword}
+                  </span>
+                </div>
+              )}
               {viewRoom.description ? (
                 <div className="db-info-row">
                   <span className="db-field-lbl">Mô tả</span>
