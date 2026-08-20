@@ -746,7 +746,7 @@ const StepPayment = ({
               Tôi đã thanh toán thành công
             </button>
             <button
-              onClick={handlePay}
+              disabled
               className="btn w-100 rounded-pill text-white fw-bold py-2 shadow"
               style={{ background: "#94a3b8", fontSize: "13px" }}
             >

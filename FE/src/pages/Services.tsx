@@ -333,6 +333,14 @@ const Services: React.FC = () => {
                         {isProcessingPayment ? <Loader2 size={18} className="me-2 spin" /> : <Check size={18} className="me-2" />}
                         {isProcessingPayment ? "Đang xử lý..." : "Tôi đã thanh toán thành công"}
                       </button>
+                      <button
+                        disabled
+                        className="btn rounded-pill text-white fw-bold py-3 shadow-sm d-flex justify-content-center align-items-center"
+                        style={{ background: "#94a3b8", fontSize: "14px" }}
+                      >
+                        <ExternalLink size={18} className="me-2" /> 
+                        Thanh toán VNPay (Đang bảo trì)
+                      </button>
                     </div>
                   </>
                 )}
