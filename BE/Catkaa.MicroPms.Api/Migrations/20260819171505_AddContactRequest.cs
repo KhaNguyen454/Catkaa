@@ -53,9 +53,10 @@ namespace Catkaa.MicroPms.Api.Migrations
                 oldMaxLength: 100,
                 oldNullable: true);
 
-            migrationBuilder.DropForeignKey(
-                name: "FK_Bookings_Users_UserId",
-                table: "Bookings");
+            // MySQL DDL rollback failure workaround: FK already dropped in previous failed run
+            // migrationBuilder.DropForeignKey(
+            //     name: "FK_Bookings_Users_UserId",
+            //     table: "Bookings");
 
             migrationBuilder.DropForeignKey(
                 name: "FK_Hotels_Users_HostId",
