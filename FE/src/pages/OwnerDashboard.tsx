@@ -80,50 +80,7 @@ import { useMessage } from "../components/MessageContext";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-const roomStatusData = [
-  { label: "Đang có khách", value: 8, color: "#1686cb" },
-  { label: "Phòng trống", value: 3, color: "#10b981" },
-  { label: "Đang dọn", value: 1, color: "#f59e0b" },
-];
 
-const guests = [
-  {
-    id: 1,
-    name: "Nguyễn Văn An",
-    room: "203",
-    checkin: "14/03/2026",
-    checkout: "16/03/2026",
-    status: "Active",
-    type: "Premium",
-  },
-  {
-    id: 2,
-    name: "Trần Thị Bình",
-    room: "105",
-    checkin: "13/03/2026",
-    checkout: "15/03/2026",
-    status: "Active",
-    type: "Standard",
-  },
-  {
-    id: 3,
-    name: "Lê Văn Cường",
-    room: "301",
-    checkin: "12/03/2026",
-    checkout: "14/03/2026",
-    status: "Completed",
-    type: "VIP",
-  },
-  {
-    id: 4,
-    name: "Phạm Minh Tuấn",
-    room: "402",
-    checkin: "11/03/2026",
-    checkout: "13/03/2026",
-    status: "Completed",
-    type: "Standard",
-  },
-];
 
 type DashboardView = "overview" | "legal" | "hotels" | "rooms" | "users" | "bookings" | "payments" | "pricing" | "support";
 
@@ -1787,11 +1744,11 @@ const OwnerDashboard: React.FC = () => {
                       </div>
                     </div>
                     <div style={{ padding: "1.1rem 1.25rem" }}>
-                      {console.log("PieChart Data:", dashboardSummary?.roomStatusChart || roomStatusData)}
+                      {console.log("PieChart Data:", dashboardSummary?.roomStatusChart || [])}
                       <ResponsiveContainer width="100%" height={170}>
                         <PieChart>
                           <Pie
-                            data={dashboardSummary?.roomStatusChart || roomStatusData}
+                            data={dashboardSummary?.roomStatusChart || []}
                             innerRadius={52}
                             outerRadius={72}
                             paddingAngle={4}
@@ -1800,7 +1757,7 @@ const OwnerDashboard: React.FC = () => {
                             stroke="none"
                             cornerRadius={5}
                           >
-                            {(dashboardSummary?.roomStatusChart || roomStatusData).map((e, i) => (
+                            {(dashboardSummary?.roomStatusChart || []).map((e, i) => (
                               <Cell key={i} fill={e.color} />
                             ))}
                           </Pie>
@@ -1815,7 +1772,7 @@ const OwnerDashboard: React.FC = () => {
                         </PieChart>
                       </ResponsiveContainer>
                       <div style={{ marginTop: ".5rem" }}>
-                        {(dashboardSummary?.roomStatusChart || roomStatusData).map((d, i) => (
+                        {(dashboardSummary?.roomStatusChart || []).map((d, i) => (
                           <div
                             key={i}
                             style={{
