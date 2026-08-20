@@ -682,6 +682,21 @@ const OwnerDashboard: React.FC = () => {
     }
   };
 
+  const [confirmingPayment, setConfirmingPayment] = useState(false);
+  const handleConfirmPayment = async (paymentId: number) => {
+    setConfirmingPayment(true);
+    try {
+      await PaymentService.confirmPayment(paymentId);
+      notify("Xác nhận thanh toán thành công", "success");
+      setViewPayment(null);
+      void loadPayments(paymentFilterHotelId ? Number(paymentFilterHotelId) : undefined, paymentFilterType ? paymentFilterType : undefined);
+    } catch (error: any) {
+      notify(error.message || "Xác nhận thanh toán thất bại", "error");
+    } finally {
+      setConfirmingPayment(false);
+    }
+  };
+
   const loadPayments = async (filterHotelId?: number, type?: string) => {
     setPaymentsLoading(true);
     setPaymentsError("");
@@ -2911,6 +2926,16 @@ const OwnerDashboard: React.FC = () => {
                       ))}
                     </div>
                     <div className="db-modal-foot">
+                      {viewPayment.status === "PendingValidation" && (
+                        <button 
+                          className="db-btn-primary" 
+                          style={{ marginRight: "auto" }}
+                          onClick={() => void handleConfirmPayment(viewPayment.id)}
+                          disabled={confirmingPayment}
+                        >
+                          {confirmingPayment ? "Đang xử lý..." : "Xác nhận đã nhận tiền"}
+                        </button>
+                      )}
                       <button className="db-btn-ghost" onClick={() => setViewPayment(null)}>Đóng</button>
                     </div>
                   </div>
