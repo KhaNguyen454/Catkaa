@@ -132,9 +132,8 @@ const OwnerDashboard: React.FC = () => {
   const [dashboardSummary, setDashboardSummary] = useState<DashboardSummary | null>(null);
   const [currentGuests, setCurrentGuests] = useState<CurrentGuest[]>([]);
   const [dashboardLoading, setDashboardLoading] = useState(false);
-  const [guestFilterDay, setGuestFilterDay] = useState("");
-  const [guestFilterMonth, setGuestFilterMonth] = useState("");
-  const [guestFilterYear, setGuestFilterYear] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   // Support state
   const [contactRequests, setContactRequests] = useState<ContactRequestData[]>([]);
@@ -286,9 +285,8 @@ const OwnerDashboard: React.FC = () => {
     setDashboardLoading(true);
     try {
       const filters = {
-        day: guestFilterDay || undefined,
-        month: guestFilterMonth || undefined,
-        year: guestFilterYear || undefined,
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
       };
       const [summary, guestsData] = await Promise.all([
         getDashboardSummary(),
@@ -1468,7 +1466,7 @@ const OwnerDashboard: React.FC = () => {
                             color: "#0f172a",
                           }}
                         >
-                          Khách đang lưu trú
+                          Danh sách đặt phòng
                         </div>
                         <div
                           style={{
@@ -1481,9 +1479,10 @@ const OwnerDashboard: React.FC = () => {
                         </div>
                       </div>
                       <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
-                        <select
-                          value={guestFilterDay}
-                          onChange={(e) => setGuestFilterDay(e.target.value)}
+                        <input
+                          type="date"
+                          value={startDate}
+                          onChange={(e) => setStartDate(e.target.value)}
                           style={{
                             height: "30px",
                             padding: "0 .5rem",
@@ -1492,15 +1491,12 @@ const OwnerDashboard: React.FC = () => {
                             fontSize: ".75rem",
                             color: "#64748b",
                           }}
-                        >
-                          <option value="">Ngày</option>
-                          {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
-                            <option key={d} value={d}>{d}</option>
-                          ))}
-                        </select>
-                        <select
-                          value={guestFilterMonth}
-                          onChange={(e) => setGuestFilterMonth(e.target.value)}
+                        />
+                        <span style={{ fontSize: ".75rem", color: "#64748b" }}>-</span>
+                        <input
+                          type="date"
+                          value={endDate}
+                          onChange={(e) => setEndDate(e.target.value)}
                           style={{
                             height: "30px",
                             padding: "0 .5rem",
@@ -1509,37 +1505,14 @@ const OwnerDashboard: React.FC = () => {
                             fontSize: ".75rem",
                             color: "#64748b",
                           }}
-                        >
-                          <option value="">Tháng</option>
-                          {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
-                            <option key={m} value={m}>{m}</option>
-                          ))}
-                        </select>
-                        <select
-                          value={guestFilterYear}
-                          onChange={(e) => setGuestFilterYear(e.target.value)}
-                          style={{
-                            height: "30px",
-                            padding: "0 .5rem",
-                            borderRadius: "8px",
-                            border: "1px solid #e2e8f0",
-                            fontSize: ".75rem",
-                            color: "#64748b",
-                          }}
-                        >
-                          <option value="">Năm</option>
-                          {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 2 + i).map(y => (
-                            <option key={y} value={y}>{y}</option>
-                          ))}
-                        </select>
+                        />
                         <button
                           onClick={async () => {
                             setDashboardLoading(true);
                             try {
                               const filters = {
-                                day: guestFilterDay || undefined,
-                                month: guestFilterMonth || undefined,
-                                year: guestFilterYear || undefined,
+                                startDate: startDate || undefined,
+                                endDate: endDate || undefined,
                               };
                               const data = await getCurrentGuests(filters);
                               setCurrentGuests(data);
@@ -1570,9 +1543,8 @@ const OwnerDashboard: React.FC = () => {
                           onClick={async () => {
                             try {
                               const filters = {
-                                day: guestFilterDay || undefined,
-                                month: guestFilterMonth || undefined,
-                                year: guestFilterYear || undefined,
+                                startDate: startDate || undefined,
+                                endDate: endDate || undefined,
                               };
                               await exportGuestsExcel(filters);
                               notify("exportSuccess", "success");

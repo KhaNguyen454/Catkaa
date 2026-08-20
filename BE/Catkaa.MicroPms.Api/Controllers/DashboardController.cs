@@ -143,19 +143,13 @@ namespace Catkaa.MicroPms.Api.Controllers
         }
 
         [HttpGet("current-guests")]
-        public async Task<IActionResult> GetCurrentGuests([FromQuery] int? day, [FromQuery] int? month, [FromQuery] int? year)
+        public async Task<IActionResult> GetCurrentGuests([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
         {
             var query = _context.Bookings
                 .Include(b => b.Room)
-                .Where(b => b.Status == "CheckedIn")
                 .AsQueryable();
 
-            if (year.HasValue)
-                query = query.Where(b => b.CheckInDate.Year == year.Value || b.CheckOutDate.Year == year.Value);
-            if (month.HasValue)
-                query = query.Where(b => b.CheckInDate.Month == month.Value || b.CheckOutDate.Month == month.Value);
-            if (day.HasValue)
-                query = query.Where(b => b.CheckInDate.Day == day.Value || b.CheckOutDate.Day == day.Value);
+            query = query.Where(b => (!startDate.HasValue || b.CheckInDate >= startDate.Value) && (!endDate.HasValue || b.CheckInDate <= endDate.Value));
 
             var activeBookings = await query
                 .Select(b => new CurrentGuestDto
@@ -174,19 +168,13 @@ namespace Catkaa.MicroPms.Api.Controllers
         }
 
         [HttpGet("export-guests")]
-        public async Task<IActionResult> ExportGuests([FromQuery] int? day, [FromQuery] int? month, [FromQuery] int? year)
+        public async Task<IActionResult> ExportGuests([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
         {
             var query = _context.Bookings
                 .Include(b => b.Room)
-                .Where(b => b.Status == "CheckedIn")
                 .AsQueryable();
 
-            if (year.HasValue)
-                query = query.Where(b => b.CheckInDate.Year == year.Value || b.CheckOutDate.Year == year.Value);
-            if (month.HasValue)
-                query = query.Where(b => b.CheckInDate.Month == month.Value || b.CheckOutDate.Month == month.Value);
-            if (day.HasValue)
-                query = query.Where(b => b.CheckInDate.Day == day.Value || b.CheckOutDate.Day == day.Value);
+            query = query.Where(b => (!startDate.HasValue || b.CheckInDate >= startDate.Value) && (!endDate.HasValue || b.CheckInDate <= endDate.Value));
 
             var guests = await query
                 .OrderByDescending(b => b.CheckInDate)

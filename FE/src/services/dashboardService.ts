@@ -44,17 +44,15 @@ export const getDashboardSummary = async (): Promise<DashboardSummary> => {
 };
 
 export interface CurrentGuestFilter {
-  day?: string;
-  month?: string;
-  year?: string;
+  startDate?: string;
+  endDate?: string;
 }
 
 export const getCurrentGuests = async (filters?: CurrentGuestFilter): Promise<CurrentGuest[]> => {
   const token = getAuthToken();
   const queryParams = new URLSearchParams();
-  if (filters?.day) queryParams.append('day', filters.day);
-  if (filters?.month) queryParams.append('month', filters.month);
-  if (filters?.year) queryParams.append('year', filters.year);
+  if (filters?.startDate) queryParams.append('startDate', filters.startDate);
+  if (filters?.endDate) queryParams.append('endDate', filters.endDate);
 
   const url = `${API_BASE_URL}/api/dashboard/current-guests${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
   
@@ -71,9 +69,8 @@ export const getCurrentGuests = async (filters?: CurrentGuestFilter): Promise<Cu
 export const exportGuestsExcel = async (filters?: CurrentGuestFilter): Promise<void> => {
   const token = getAuthToken();
   const queryParams = new URLSearchParams();
-  if (filters?.day) queryParams.append('day', filters.day);
-  if (filters?.month) queryParams.append('month', filters.month);
-  if (filters?.year) queryParams.append('year', filters.year);
+  if (filters?.startDate) queryParams.append('startDate', filters.startDate);
+  if (filters?.endDate) queryParams.append('endDate', filters.endDate);
 
   const url = `${API_BASE_URL}/api/dashboard/export-guests${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
 
