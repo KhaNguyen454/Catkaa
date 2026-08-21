@@ -145,7 +145,13 @@ export default function PaymentResult() {
 
         {/* Buttons */}
         <button
-          onClick={() => window.close()}
+          onClick={() => {
+            if (window.opener && !window.opener.closed) {
+              window.close();
+            } else {
+              window.location.href = "/";
+            }
+          }}
           style={{
             background: success
               ? "linear-gradient(135deg,#16a34a,#15803d)"
@@ -164,7 +170,7 @@ export default function PaymentResult() {
           onMouseEnter={(e) => (e.currentTarget.style.opacity = ".88")}
           onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
         >
-          Đóng và quay lại
+          Đóng và quay lại trang chủ
         </button>
 
         {!success && (

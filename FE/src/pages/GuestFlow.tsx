@@ -586,10 +586,27 @@ const StepPayment = ({
     ? `Phòng ${roomInfo.roomNumber} · ${roomInfo.roomType}`
     : data?.roomId ? `Phòng #${data.roomId}` : "—";
 
-  const handlePay = () => {
-    if (paymentUrl) {
-      window.open(paymentUrl, "_blank");
-      setPaid(true);
+  const handlePay = async () => {
+    if (!data?.bookingId) return;
+    setLoadingQr(true);
+    try {
+      // Gọi API create-url của VNPay
+      const res = await fetch(`${API_BASE_URL}/api/payments/create-url/${data.bookingId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+      if (!res.ok) throw new Error("Không thể tạo link thanh toán VNPay");
+      const result = await res.json();
+      if (result.paymentUrl) {
+        window.location.href = result.paymentUrl;
+      }
+    } catch (err: any) {
+      setError(err.message || "Lỗi tạo thanh toán VNPay");
+      setTimeout(() => setError(""), 5000);
+    } finally {
+      setLoadingQr(false);
     }
   };
 
@@ -797,12 +814,13 @@ const StepPayment = ({
               Tôi đã thanh toán thành công
             </button>
             <button
-              disabled
-              className="btn w-100 rounded-pill text-white fw-bold py-2 shadow"
-              style={{ background: "#94a3b8", fontSize: "13px" }}
+              onClick={handlePay}
+              disabled={loadingQr}
+              className="btn w-100 rounded-pill fw-bold py-2 shadow mt-2"
+              style={{ background: "#f1f5f9", color: "#1e293b", fontSize: "13px", border: "1px solid #cbd5e1" }}
             >
-              <ExternalLink size={14} className="me-2" />
-              Thanh toán VNPay (Đang bảo trì)
+              {loadingQr ? <Loader2 size={14} className="me-2 spin" /> : <ExternalLink size={14} className="me-2 text-primary" />}
+              Thanh toán qua VNPay
             </button>
           </>
         ) : (

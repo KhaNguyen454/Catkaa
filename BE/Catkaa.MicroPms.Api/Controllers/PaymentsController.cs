@@ -24,7 +24,7 @@ namespace Catkaa.MicroPms.Api.Controllers
         /// Booking phải ở trạng thái Pending hoặc CheckedIn.
         /// </summary>
         [HttpPost("create-url/{bookingId}")]
-        [Authorize]
+        [AllowAnonymous]
         public async Task<IActionResult> CreatePaymentUrl(int bookingId)
         {
             try
