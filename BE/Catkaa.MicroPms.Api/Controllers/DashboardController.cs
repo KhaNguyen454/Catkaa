@@ -39,27 +39,10 @@ namespace Catkaa.MicroPms.Api.Controllers
                 
                 var totalSupportRequests = await _context.ContactRequests.CountAsync();
 
-                // 1. Doanh thu từ bảng Payments (Gói dịch vụ hoặc thanh toán online)
-                var paymentRevenue = await _context.Payments
-                    .Where(p => p.Status == "Completed" || p.Status == "Thành công")
+                // 1. Doanh thu từ bảng Payments (chỉ tính giao dịch Success)
+                var totalSystemRevenue = await _context.Payments
+                    .Where(p => p.Status == "Success")
                     .SumAsync(p => p.Amount);
-
-                // 2. Doanh thu từ bảng Bookings (Vì CSDL không lưu cột TotalPrice, cần tự tính toán: Số đêm * Giá phòng)
-                var completedBookings = await _context.Bookings
-                    .Include(b => b.Room)
-                    .Where(b => b.Status == "CheckOut" || b.Status == "Completed")
-                    .Select(b => new { b.CheckInDate, b.CheckOutDate, Price = b.Room != null ? b.Room.Price : 0 })
-                    .ToListAsync();
-
-                var bookingRevenue = completedBookings.Sum(b => 
-                {
-                    var nights = (b.CheckOutDate.Date - b.CheckInDate.Date).Days;
-                    if (nights <= 0) nights = 1;
-                    return nights * b.Price;
-                });
-
-                // Gom 2 nguồn doanh thu lại thành 1
-                var totalSystemRevenue = paymentRevenue + bookingRevenue;
 
                 // 3. Biểu đồ thống kê loại tài khoản (Admin Pie Chart)
                 var hostsCount = await _context.Users.CountAsync(u => u.Role == "Host");
@@ -99,19 +82,11 @@ namespace Catkaa.MicroPms.Api.Controllers
                 .Where(b => hostHotels.Contains(b.HotelId) && b.CheckInDate >= startOfMonth)
                 .CountAsync();
 
-            // KPI: Today revenue (từ Bookings Checkout hôm nay của các KS thuộc Host)
-            var completedTodayBookings = await _context.Bookings
-                .Include(b => b.Room)
-                .Where(b => hostHotels.Contains(b.HotelId) && b.CheckOutDate.Date == today && (b.Status == "CheckOut" || b.Status == "Completed"))
-                .Select(b => new { b.CheckInDate, b.CheckOutDate, Price = b.Room != null ? b.Room.Price : 0 })
-                .ToListAsync();
-
-            var todayRevenue = completedTodayBookings.Sum(b => 
-            {
-                var nights = (b.CheckOutDate.Date - b.CheckInDate.Date).Days;
-                if (nights <= 0) nights = 1;
-                return nights * b.Price;
-            });
+            // KPI: Today revenue (chỉ tính giao dịch Success trong bảng Payments của hôm nay)
+            var todayRevenue = await _context.Payments
+                .Include(p => p.Booking)
+                .Where(p => p.Booking != null && hostHotels.Contains(p.Booking.HotelId) && p.Status == "Success" && p.PaymentDate.Date == today)
+                .SumAsync(p => p.Amount);
 
             // KPI: Support requests count (chỉ lấy request của User này? Hoặc Host không có support, lấy 0. Hoặc lấy từ ContactRequests của Host? Giữ nguyên lấy all nếu chưa có UserId trong ContactRequest)
             var unresolvedSupportRequests = await _context.ContactRequests.CountAsync(c => !c.IsResolved); // Mặc định
