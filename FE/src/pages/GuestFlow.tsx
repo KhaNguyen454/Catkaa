@@ -557,10 +557,12 @@ const StepPayment = ({
   checkInResult,
   roomInfo,
   hotelName,
+  setCheckInResult,
 }: {
   checkInResult: OcrCheckInResponse | null;
   roomInfo: RoomRecord | null;
   hotelName: string;
+  setCheckInResult: any;
 }) => {
   const data = checkInResult?.data;
   const paymentUrl = data?.paymentUrl;
@@ -659,6 +661,17 @@ const StepPayment = ({
             
             if (booking && (booking.paymentStatus?.toLowerCase() === "success" || booking.status?.toLowerCase() === "checkin")) {
               clearInterval(intervalId);
+              
+              if (checkInResult && setCheckInResult) {
+                setCheckInResult({
+                  ...checkInResult,
+                  data: {
+                    ...checkInResult.data,
+                    roomPassword: booking.roomPassword || checkInResult.data.roomPassword
+                  }
+                });
+              }
+
               setPendingValidation(false);
               setPaymentConfirmed(true);
             }
@@ -1032,6 +1045,7 @@ export default function GuestFlow() {
                         checkInResult={checkInResult}
                         roomInfo={roomInfo}
                         hotelName={selectedHotel?.name ?? ""}
+                        setCheckInResult={setCheckInResult}
                       />
                     )}
                   </motion.div>
