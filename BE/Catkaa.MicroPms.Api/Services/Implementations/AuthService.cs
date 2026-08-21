@@ -74,8 +74,11 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
                     return ServiceResult<object?>.Fail("Username already exists");
                 }
 
+                // Workaround: Manually assign ID because the database is missing AUTO_INCREMENT
+                int maxId = await _context.Users.MaxAsync(u => (int?)u.Id) ?? 0;
                 var user = new User
                 {
+                    Id = maxId + 1,
                     Username = request.Username,
                     PasswordHash = request.Password,
                     Email = request.Email,
