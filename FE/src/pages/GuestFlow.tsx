@@ -815,7 +815,6 @@ const StepPayment = ({
             </button>
             <button
               onClick={handlePay}
-              disabled={loadingQr}
               className="btn w-100 rounded-pill fw-bold py-2 shadow mt-2"
               style={{ background: "#f1f5f9", color: "#1e293b", fontSize: "13px", border: "1px solid #cbd5e1" }}
             >
