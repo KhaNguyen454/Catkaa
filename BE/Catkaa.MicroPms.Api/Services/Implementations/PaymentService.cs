@@ -41,8 +41,9 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
             if (currentUserId != null && booking.UserId != currentUserId && booking.UserId != null)
                 return ServiceResult<string>.Fail("Unauthorized Access");
 
-            // Cho phép Pending (chưa check-in), AwaitingPayment (OCR xong), và CheckedIn
-            if (booking.Status == "CheckIn" || booking.Status == "CheckOut" || booking.Status == "Cancelled")
+            // Cho phép Pending, PendingValidation, AwaitingPayment, và CheckIn
+            var allowedStatuses = new[] { "Pending", "PendingValidation", "AwaitingPayment", "CheckIn" };
+            if (!allowedStatuses.Contains(booking.Status))
                 return ServiceResult<string>.Fail("Booking không thể thanh toán ở trạng thái hiện tại");
 
             // Kiểm tra đã thanh toán thành công chưa
