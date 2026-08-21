@@ -814,22 +814,22 @@ const StepPayment = ({
               Tôi đã thanh toán thành công
             </button>
             <button
-              onClick={handlePay}
-              className="btn w-100 rounded-pill fw-bold py-2 shadow mt-2"
-              style={{ background: "#f1f5f9", color: "#1e293b", fontSize: "13px", border: "1px solid #cbd5e1" }}
+              disabled
+              className="btn w-100 rounded-pill text-white fw-bold py-2 shadow mt-2"
+              style={{ background: "#94a3b8", fontSize: "13px" }}
             >
-              {loadingQr ? <Loader2 size={14} className="me-2 spin" /> : <ExternalLink size={14} className="me-2 text-primary" />}
-              Thanh toán qua VNPay
+              <ExternalLink size={14} className="me-2" />
+              Thanh toán VNPay (Đang bảo trì)
             </button>
           </>
         ) : (
           <button
-            onClick={handlePay}
-            className="btn btn-outline-primary w-100 rounded-pill fw-bold py-2"
-            style={{ fontSize: "12px" }}
+            disabled
+            className="btn w-100 rounded-pill text-white fw-bold py-2 shadow mt-2"
+            style={{ background: "#94a3b8", fontSize: "13px" }}
           >
             <ExternalLink size={13} className="me-1" />
-            Mở lại trang VNPay
+            Thanh toán VNPay (Đang bảo trì)
           </button>
         )}
         {!paymentConfirmed && !pendingValidation && (
