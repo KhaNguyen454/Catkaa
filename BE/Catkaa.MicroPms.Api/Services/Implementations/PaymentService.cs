@@ -27,6 +27,10 @@ namespace Catkaa.MicroPms.Api.Services.Implementations
             _configuration = configuration;
             _vnpSettings = vnpSettings.Value;
             _emailService = emailService;
+
+            // Hardcode keys temporarily for VNPay
+            _vnpSettings.TmnCode = "PCK7XH6L";
+            _vnpSettings.HashSecret = "xXvX6FmHcPem5cDGUbltN4Lp+GgGr62wma3/pCIPByHDztVfnAhDTqTnCi95hUAI";
         }
 
         public async Task<ServiceResult<string>> CreatePaymentUrlAsync(int bookingId, int? currentUserId, HttpContext context)
