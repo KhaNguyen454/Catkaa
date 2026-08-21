@@ -111,16 +111,10 @@ namespace Catkaa.MicroPms.Api.Helpers
             var ipAddress = string.Empty;
             try
             {
-                var remoteIpAddress = context.Connection.RemoteIpAddress;
-                if (remoteIpAddress != null)
+                ipAddress = context.Connection.RemoteIpAddress?.ToString();
+                if (string.IsNullOrEmpty(ipAddress) || ipAddress == "::1")
                 {
-                    if (remoteIpAddress.AddressFamily == AddressFamily.InterNetworkV6)
-                    {
-                        remoteIpAddress = Dns.GetHostEntry(remoteIpAddress).AddressList
-                            .FirstOrDefault(x => x.AddressFamily == AddressFamily.InterNetwork);
-                    }
-                    if (remoteIpAddress != null) ipAddress = remoteIpAddress.ToString();
-                    if (ipAddress == "127.0.0.1") ipAddress = "127.0.0.1";
+                    ipAddress = "127.0.0.1";
                 }
             }
             catch (Exception)

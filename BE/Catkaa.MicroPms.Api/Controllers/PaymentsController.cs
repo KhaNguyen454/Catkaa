@@ -25,7 +25,7 @@ namespace Catkaa.MicroPms.Api.Controllers
         /// </summary>
         [HttpPost("create-url/{bookingId}")]
         [AllowAnonymous]
-        public async Task<IActionResult> CreatePaymentUrl(int bookingId)
+        public async Task<IActionResult> CreatePaymentUrl([FromRoute] int bookingId)
         {
             try
             {
@@ -35,7 +35,7 @@ namespace Catkaa.MicroPms.Api.Controllers
             }
             catch (System.Exception ex)
             {
-                return StatusCode(500, new { message = "Internal server error", details = ex.Message });
+                return BadRequest(new { message = ex.Message });
             }
         }
 
