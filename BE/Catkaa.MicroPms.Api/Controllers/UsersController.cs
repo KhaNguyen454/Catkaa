@@ -30,7 +30,7 @@ namespace Catkaa.MicroPms.Api.Controllers
             }
             catch (System.Exception ex)
             {
-                return StatusCode(500, new { message = "Internal server error", details = ex.Message });
+                return StatusCode(500, new { message = "Internal server error", details = ex.InnerException != null ? ex.InnerException.Message : ex.Message });
             }
         }
 
@@ -46,7 +46,7 @@ namespace Catkaa.MicroPms.Api.Controllers
             }
             catch (System.Exception ex)
             {
-                return StatusCode(500, new { message = "Internal server error", details = ex.Message });
+                return StatusCode(500, new { message = "Internal server error", details = ex.InnerException != null ? ex.InnerException.Message : ex.Message });
             }
         }
 
@@ -65,7 +65,7 @@ namespace Catkaa.MicroPms.Api.Controllers
             }
             catch (System.Exception ex)
             {
-                return StatusCode(500, new { message = "Internal server error", details = ex.Message });
+                return StatusCode(500, new { message = "Internal server error", details = ex.InnerException != null ? ex.InnerException.Message : ex.Message });
             }
         }
 
@@ -84,7 +84,7 @@ namespace Catkaa.MicroPms.Api.Controllers
             }
             catch (System.Exception ex)
             {
-                return StatusCode(500, new { message = "Internal server error", details = ex.Message });
+                return StatusCode(500, new { message = "Internal server error", details = ex.InnerException != null ? ex.InnerException.Message : ex.Message });
             }
         }
 
@@ -101,7 +101,7 @@ namespace Catkaa.MicroPms.Api.Controllers
             }
             catch (System.Exception ex)
             {
-                return StatusCode(500, new { message = "Internal server error", details = ex.Message });
+                return StatusCode(500, new { message = "Internal server error", details = ex.InnerException != null ? ex.InnerException.Message : ex.Message });
             }
         }
 
@@ -120,7 +120,7 @@ namespace Catkaa.MicroPms.Api.Controllers
             }
             catch (System.Exception ex)
             {
-                return StatusCode(500, new { message = "Internal server error", details = ex.Message });
+                return StatusCode(500, new { message = "Internal server error", details = ex.InnerException != null ? ex.InnerException.Message : ex.Message });
             }
         }
     }
